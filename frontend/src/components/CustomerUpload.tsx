@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { CustomerUploadResponse } from '../types';
+import { TranslationKey } from '../i18n/translations';
 
 interface Props {
   onUploadComplete: (data: CustomerUploadResponse) => void;
+  t: (key: TranslationKey) => string;
 }
 
-export const CustomerUpload: React.FC<Props> = ({ onUploadComplete }) => {
+export const CustomerUpload: React.FC<Props> = ({ onUploadComplete, t: _t }) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

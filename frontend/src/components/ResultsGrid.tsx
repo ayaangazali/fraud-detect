@@ -2,13 +2,17 @@
 import React, { useState, useMemo } from 'react';
 import { MatchResult } from '../types';
 import { api } from '../services/api';
+import { TranslationKey } from '../i18n/translations';
 
 interface Props {
   results: MatchResult[];
   processingTime?: number;
+  onViewDetails: (match: MatchResult) => void;
+  t: (key: TranslationKey) => string;
+  isArabic: boolean;
 }
 
-export const ResultsGrid: React.FC<Props> = ({ results, processingTime }) => {
+export const ResultsGrid: React.FC<Props> = ({ results, processingTime, onViewDetails, t: _t, isArabic: _isArabic }) => {
   const [minScore, setMinScore] = useState<number>(0);
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -188,6 +192,8 @@ export const ResultsGrid: React.FC<Props> = ({ results, processingTime }) => {
               <th onClick={() => handleSort('similarity_score')}>
                 Score {sortField === 'similarity_score' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
+              <th>Reason</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
@@ -223,6 +229,22 @@ export const ResultsGrid: React.FC<Props> = ({ results, processingTime }) => {
                   <span className={`score-badge score-${Math.floor(match.similarity_score / 10) * 10}`}>
                     {match.similarity_score}%
                   </span>
+                </td>
+                <td className="reason-cell" title={match.match_reason}>
+                  <span className={`match-type-badge match-type-${match.match_type}`}>
+                    {match.match_type === 'direct' && '🎯 Direct'}
+                    {match.match_type === 'alias' && '🔄 Alias'}
+                    {match.match_type === 'fuzzy' && '🔍 Fuzzy'}
+                  </span>
+                </td>
+                <td>
+                  <button 
+                    className="btn-view-details"
+                    onClick={() => onViewDetails(match)}
+                    title="View detailed match information"
+                  >
+                    View Details
+                  </button>
                 </td>
               </tr>
             ))}

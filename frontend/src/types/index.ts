@@ -55,7 +55,15 @@ export interface MatchResult {
   source: string;
   effective_date: string;
   similarity_score: number;
-  blacklist_type: 'police' | 'user'; // Distinguish between police and user blacklist
+  blacklist_type: 'police' | 'user';
+  match_type: 'direct' | 'alias' | 'fuzzy';
+  match_reason: string;
+  matched_field: string;
+  score_breakdown: {
+    name_similarity: number;
+    alias_similarity: number;
+    best_match: string;
+  };
 }
 
 export interface ScreeningResponse {

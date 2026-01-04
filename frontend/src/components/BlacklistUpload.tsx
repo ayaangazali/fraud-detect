@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { BlacklistUploadResponse } from '../types';
+import { TranslationKey } from '../i18n/translations';
 
 interface Props {
   onUploadComplete: (data: BlacklistUploadResponse) => void;
+  t: (key: TranslationKey) => string;
 }
 
-export const BlacklistUpload: React.FC<Props> = ({ onUploadComplete }) => {
+export const BlacklistUpload: React.FC<Props> = ({ onUploadComplete, t: _t }) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

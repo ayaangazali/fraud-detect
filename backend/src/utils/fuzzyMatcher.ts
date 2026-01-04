@@ -78,6 +78,23 @@ export function performFuzzyMatching(
 
       if (similarityScore >= threshold) {
         const entry = result.item;
+        
+        // Determine match type and reason
+        const isAlias = entry.matchedAlias !== null;
+        const isDirect = similarityScore >= 95;
+        const matchType: 'direct' | 'alias' | 'fuzzy' = isDirect ? 'direct' : (isAlias ? 'alias' : 'fuzzy');
+        
+        let matchReason = '';
+        if (isDirect && !isAlias) {
+          matchReason = 'Direct name match - Names are virtually identical';
+        } else if (isAlias) {
+          matchReason = `Matched via alias "${entry.matchedAlias}" with ${similarityScore}% similarity`;
+        } else {
+          matchReason = `Fuzzy match detected - ${similarityScore}% similarity in name patterns`;
+        }
+        
+        const matchedField = isAlias ? `alias: ${entry.matchedAlias}` : 'full_name';
+        
         matches.push({
           customer_id: customer.customer_id,
           customer_name: customer.full_name_en,
@@ -93,6 +110,14 @@ export function performFuzzyMatching(
           effective_date: entry.effectiveDate,
           similarity_score: similarityScore,
           blacklist_type: entry.blacklistType,
+          match_type: matchType,
+          match_reason: matchReason,
+          matched_field: matchedField,
+          score_breakdown: {
+            name_similarity: isAlias ? 0 : similarityScore,
+            alias_similarity: isAlias ? similarityScore : 0,
+            best_match: isAlias ? (entry.matchedAlias || entry.originalName) : entry.originalName,
+          },
         });
       }
     }

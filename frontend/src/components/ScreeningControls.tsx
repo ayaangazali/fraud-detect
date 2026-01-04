@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { CustomerRow, BlacklistRow, ScreeningResponse } from '../types';
+import { TranslationKey } from '../i18n/translations';
 
 interface Props {
   customerData: CustomerRow[] | null;
@@ -9,6 +10,7 @@ interface Props {
   customerErrors: number;
   blacklistErrors: number;
   onScreeningComplete: (results: ScreeningResponse) => void;
+  t: (key: TranslationKey) => string;
 }
 
 export const ScreeningControls: React.FC<Props> = ({
@@ -17,6 +19,7 @@ export const ScreeningControls: React.FC<Props> = ({
   customerErrors,
   blacklistErrors,
   onScreeningComplete,
+  t: _t,
 }) => {
   const [threshold, setThreshold] = useState<number>(75);
   const [includeAliases, setIncludeAliases] = useState<boolean>(true);

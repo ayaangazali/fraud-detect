@@ -63,6 +63,14 @@ export interface MatchResult {
   effective_date: string;
   similarity_score: number;
   blacklist_type: 'police' | 'user'; // Distinguish between police and user blacklist
+  match_type: 'direct' | 'alias' | 'fuzzy'; // How the match was found
+  match_reason: string; // Human-readable explanation
+  matched_field: string; // Which field matched (name, alias)
+  score_breakdown: {
+    name_similarity: number;
+    alias_similarity: number;
+    best_match: string;
+  };
 }
 
 export interface ScreeningResponse {
