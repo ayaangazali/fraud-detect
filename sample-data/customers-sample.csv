@@ -1,0 +1,11 @@
+customer_id,type,full_name_en,date_of_birth,company_reg_no,nationality_country
+C001,individual,John Smith,1990-05-15,,USA
+C002,individual,Jane Doe,1985-03-22,,UK
+C003,corporate,ABC Corporation,,REG-2024-001,USA
+C004,individual,Mohammed Ali,1978-11-30,,UAE
+C005,corporate,Global Trading Ltd,,REG-2023-456,Singapore
+C006,individual,Maria Garcia,1992-07-18,,Spain
+C007,individual,Jonathan Smith,1990-05-14,,USA
+C008,corporate,XYZ Industries Inc,,REG-2022-789,Canada
+C009,individual,Ahmed Hassan,1980-09-05,,Egypt
+C010,corporate,Tech Innovations LLC,,REG-2024-100,Ireland

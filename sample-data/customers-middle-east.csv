@@ -1,0 +1,51 @@
+customer_id,type,full_name_en,date_of_birth,company_reg_no,nationality_country
+C001,individual,Mohammed Ahmed Al-Rashid,1985-03-15,,Kuwait
+C002,individual,Fatima Hassan Al-Mutairi,1990-07-22,,Kuwait
+C003,corporate,Al-Manarah Trading Company,,KW-2020-1234,Kuwait
+C004,individual,Abdullah Khalid Al-Sabah,1978-11-08,,Kuwait
+C005,individual,Sarah Ibrahim Al-Khaldi,1992-05-18,,Kuwait
+C006,corporate,Gulf Investment Holdings,,KW-2019-5678,Kuwait
+C007,individual,Youssef Omar Al-Azmi,1988-09-30,,Kuwait
+C008,individual,Layla Mansour Al-Otaibi,1995-02-14,,Kuwait
+C009,corporate,Kuwait Financial Services,,KW-2021-9012,Kuwait
+C010,individual,Hassan Mohammed Al-Farsi,1982-12-20,,Kuwait
+C011,individual,Maryam Abdulaziz Al-Qattan,1991-08-05,,Kuwait
+C012,corporate,Al-Salam Real Estate,,KW-2018-3456,Kuwait
+C013,individual,Khaled Saeed Al-Hajri,1987-04-25,,Kuwait
+C014,individual,Noor Fahad Al-Shammari,1993-10-12,,Kuwait
+C015,corporate,Emirates Trading LLC,,AE-2020-7890,UAE
+C016,individual,Ahmad Rashid Al-Mazrouei,1984-06-18,,UAE
+C017,individual,Amina Saleh Al-Nuaimi,1989-01-28,,UAE
+C018,individual,Omar Abdullah Bin Laden,1976-08-15,,Saudi Arabia
+C019,corporate,Al-Barakah Industries,,SA-2019-2345,Saudi Arabia
+C020,individual,Zainab Khalil Al-Dosari,1994-11-03,,Saudi Arabia
+C021,individual,Tariq Hussein Al-Maliki,1986-07-09,,Saudi Arabia
+C022,corporate,Riyadh Commerce Group,,SA-2021-6789,Saudi Arabia
+C023,individual,Huda Nasser Al-Ghamdi,1991-03-21,,Saudi Arabia
+C024,individual,Faisal Mohammed Al-Qarni,1983-09-14,,Saudi Arabia
+C025,corporate,Bahrain Investment Corp,,BH-2020-1111,Bahrain
+C026,individual,Jasim Ali Al-Khalifa,1990-05-06,,Bahrain
+C027,individual,Rania Hamad Al-Dosari,1988-12-17,,Bahrain
+C028,individual,Sultan Jaber Al-Rumaihi,1985-02-28,,Qatar
+C029,corporate,Qatar National Holdings,,QA-2019-2222,Qatar
+C030,individual,Lina Sami Al-Thani,1992-08-19,,Qatar
+C031,individual,John Michael Roberts,1980-04-12,,USA
+C032,individual,David James Anderson,1987-11-25,,UK
+C033,corporate,Global Tech Solutions,,US-2020-3333,USA
+C034,individual,Robert William Harris,1975-09-08,,Canada
+C035,individual,Ahmed Ali Hassan,1989-06-14,,Egypt
+C036,corporate,Nile Trading Company,,EG-2021-4444,Egypt
+C037,individual,Ali Mohammed Saleh,1986-03-22,,Yemen
+C038,individual,Ibrahim Youssef Khalil,1993-07-16,,Lebanon
+C039,corporate,Levant Financial Group,,LB-2020-5555,Lebanon
+C040,individual,Mustafa Karim Habib,1984-12-09,,Iraq
+C041,individual,Samir Mahmoud Abbas,1991-02-05,,Palestine
+C042,corporate,Jordan Investment Bank,,JO-2019-6666,Jordan
+C043,individual,Hamza Faisal Al-Omari,1988-10-23,,Jordan
+C044,individual,Aisha Tariq Al-Hashimi,1994-05-28,,Iraq
+C045,individual,Younes Omar Mansouri,1987-08-11,,Morocco
+C046,corporate,Maghreb Industries Ltd,,MA-2021-7777,Morocco
+C047,individual,Hassan Abdullah Al-Najjar,1985-01-19,,Syria
+C048,individual,Mariam Saeed Khoury,1990-09-07,,Syria
+C049,corporate,Oasis Development Corp,,OM-2020-8888,Oman
+C050,individual,Mohammed Rashid Al-Balushi,1983-11-30,,Oman
