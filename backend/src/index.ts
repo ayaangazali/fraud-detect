@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Routes
 app.use('/api/upload', uploadRoutes);
 app.use('/api', screeningRoutes);
-app.use('/api/export', exportRoutes);
+app.use('/api', exportRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
