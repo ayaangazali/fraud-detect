@@ -80,3 +80,88 @@ export interface ScreeningResponse {
   matchesFound: number;
   processingTime: number;
 }
+
+// NEW TYPES FOR UPDATED WORKFLOW
+
+export interface KamcoClient {
+  customer_id: string;
+  name: string;
+  type: 'individual' | 'company';
+  dob_or_reg_no: string;
+  nationality_country: string;
+  department: string;
+  position: string;
+  hire_date: string;
+  status: 'active' | 'inactive';
+}
+
+export interface ScreeningEntry {
+  full_name: string;
+  alias_alternate_names?: string;
+  dob_or_reg_no?: string;
+  nationality_country?: string;
+  source?: string;
+  effective_date?: string;
+}
+
+export interface ScreeningListUploadResponse {
+  rows: ScreeningEntry[];
+  preview: ScreeningEntry[];
+  errors: any[];
+  totalRows: number;
+  validRows: number;
+}
+
+export interface FlaggedLogEntry {
+  flagged_id: string;
+  customer_id: string;
+  customer_name: string;
+  customer_type: string;
+  customer_dob: string;
+  customer_nationality: string;
+  customer_department: string;
+  customer_position: string;
+  screening_name: string;
+  screening_aliases: string;
+  screening_source: string;
+  similarity_score: number;
+  match_type: string;
+  match_reason: string;
+  user_comments: string;
+  flagged_date: string;
+  flagged_by: string;
+  screening_file_source: string;
+}
+
+export interface ReviewAction {
+  type: 'flag' | 'safe' | 'skip';
+  match: MatchResult;
+  comments?: string;
+}
+
+export interface ReviewState {
+  currentIndex: number;
+  totalMatches: number;
+  flaggedCount: number;
+  safeCount: number;
+  skippedCount: number;
+  reviewedMatches: string[]; // Array of match IDs
+}
+
+export interface ExtendedMatchResult extends MatchResult {
+  review_status: 'pending' | 'flagged' | 'safe' | 'skipped';
+  kamco_client?: KamcoClient; // Embedded KAMCO client data
+  screening_entry?: ScreeningEntry; // Embedded screening entry data
+}
+
+export interface FlagRequest {
+  match: ExtendedMatchResult;
+  comments: string;
+  flagged_by?: string;
+}
+
+export interface SafeRequest {
+  match_id: string;
+  screening_name: string;
+}
+
