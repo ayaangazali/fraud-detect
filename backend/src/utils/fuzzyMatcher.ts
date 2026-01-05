@@ -9,7 +9,7 @@ interface BlacklistEntry {
   matchedAlias: string | null;
   source: string;
   effectiveDate: string;
-  blacklistType: 'police' | 'user';
+  blacklistType: 'regulator' | 'user';
 }
 
 /**

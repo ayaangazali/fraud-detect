@@ -59,7 +59,7 @@ export const translations = {
     results: "Screening Results",
     noResults: "No results yet. Run screening to see matches.",
     totalMatches: "Total Matches",
-    policeMatches: "Police Blacklist",
+    regulatorMatches: "Regulator Blacklist",
     userMatches: "User Blacklist",
     highRisk: "High Risk",
     mediumRisk: "Medium Risk",
@@ -75,10 +75,9 @@ export const translations = {
     government: "Government",
     regulator: "Regulator",
     other: "Other",
-    police: "Police",
     filterBy: "Filter By",
     all: "All",
-    policeBlacklist: "Police Blacklist",
+    regulatorBlacklist: "Regulator Blacklist",
     userBlacklist: "User Blacklist",
     individual: "Individual",
     corporate: "Corporate",
@@ -112,7 +111,7 @@ export const translations = {
     // Badges
     direct: "Direct",
     alias: "Alias",
-    policeLabel: "Police",
+    regulatorLabel: "Regulator",
     userLabel: "User",
     
     // Export
@@ -205,7 +204,7 @@ export const translations = {
     results: "نتائج الفحص",
     noResults: "لا توجد نتائج بعد. قم بتشغيل الفحص لرؤية التطابقات.",
     totalMatches: "إجمالي التطابقات",
-    policeMatches: "القائمة السوداء للشرطة",
+    regulatorMatches: "القائمة السوداء التنظيمية",
     userMatches: "القائمة السوداء للمستخدم",
     highRisk: "مخاطر عالية",
     mediumRisk: "مخاطر متوسطة",
@@ -221,10 +220,9 @@ export const translations = {
     government: "حكومي",
     regulator: "تنظيمي",
     other: "آخر",
-    police: "شرطة",
     filterBy: "تصفية حسب",
     all: "الكل",
-    policeBlacklist: "القائمة السوداء للشرطة",
+    regulatorBlacklist: "القائمة السوداء التنظيمية",
     userBlacklist: "القائمة السوداء للمستخدم",
     individual: "فرد",
     corporate: "شركة",
@@ -258,7 +256,7 @@ export const translations = {
     // Badges
     direct: "مباشر",
     alias: "مستعار",
-    policeLabel: "شرطة",
+    regulatorLabel: "جهة تنظيمية",
     userLabel: "مستخدم",
     
     // Export

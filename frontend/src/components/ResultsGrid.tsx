@@ -25,7 +25,7 @@ export const ResultsGrid: React.FC<Props> = ({ results, processingTime, onViewDe
     let filtered = results.filter(r => {
       if (r.similarity_score < minScore) return false;
       if (sourceFilter !== 'all' && r.source !== sourceFilter) return false;
-      if (typeFilter === 'police' && r.blacklist_type !== 'police') return false;
+      if (typeFilter === 'regulator' && r.blacklist_type !== 'regulator') return false;
       if (typeFilter === 'user' && r.blacklist_type !== 'user') return false;
       if (typeFilter === 'individual' && r.customer_type !== 'individual') return false;
       if (typeFilter === 'corporate' && r.customer_type !== 'corporate') return false;
@@ -133,7 +133,7 @@ export const ResultsGrid: React.FC<Props> = ({ results, processingTime, onViewDe
             <option value="government">Government</option>
             <option value="regulator">Regulator</option>
             <option value="other">Other</option>
-            <option value="POLICE">Police</option>
+            <option value="REGULATOR">Regulator</option>
           </select>
         </div>
 
@@ -146,7 +146,7 @@ export const ResultsGrid: React.FC<Props> = ({ results, processingTime, onViewDe
           >
             <option value="all">All</option>
             <optgroup label="Blacklist Type">
-              <option value="police">🚔 Police Blacklist</option>
+              <option value="regulator">⚖️ Regulator Blacklist</option>
               <option value="user">📋 User Blacklist</option>
             </optgroup>
             <optgroup label="Customer Type">
@@ -169,54 +169,54 @@ export const ResultsGrid: React.FC<Props> = ({ results, processingTime, onViewDe
         <table className="results-table">
           <thead>
             <tr>
-              <th onClick={() => handleSort('customer_id')}>
+              <th className="customer-header" onClick={() => handleSort('customer_id')}>
                 Customer ID {sortField === 'customer_id' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th onClick={() => handleSort('customer_name')}>
+              <th className="customer-header" onClick={() => handleSort('customer_name')}>
                 Customer Name {sortField === 'customer_name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th onClick={() => handleSort('customer_type')}>
+              <th className="customer-header" onClick={() => handleSort('customer_type')}>
                 Type {sortField === 'customer_type' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th>DOB/Reg No</th>
-              <th>Nationality</th>
-              <th onClick={() => handleSort('matched_blacklist_name')}>
+              <th className="customer-header">DOB/Reg No</th>
+              <th className="customer-header">Nationality</th>
+              <th className="regulator-header" onClick={() => handleSort('matched_blacklist_name')}>
                 Blacklist Match {sortField === 'matched_blacklist_name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th>Matched Via</th>
-              <th onClick={() => handleSort('source')}>
+              <th className="regulator-header">Matched Via</th>
+              <th className="regulator-header" onClick={() => handleSort('source')}>
                 Source {sortField === 'source' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th>Blacklist Type</th>
-              <th>Effective Date</th>
-              <th onClick={() => handleSort('similarity_score')}>
+              <th className="regulator-header">Blacklist Type</th>
+              <th className="regulator-header">Effective Date</th>
+              <th className="regulator-header" onClick={() => handleSort('similarity_score')}>
                 Score {sortField === 'similarity_score' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
-              <th>Reason</th>
+              <th className="regulator-header">Reason</th>
               <th>Details</th>
             </tr>
           </thead>
           <tbody>
             {filteredResults.map((match, idx) => (
               <tr key={idx} className={match.similarity_score >= 90 ? 'high-risk' : ''}>
-                <td>{match.customer_id}</td>
-                <td>{match.customer_name}</td>
-                <td>{match.customer_type}</td>
-                <td>{match.dob_or_reg_no}</td>
-                <td>{match.nationality_country}</td>
-                <td>{match.matched_blacklist_name}</td>
-                <td>
+                <td className="customer-data">{match.customer_id}</td>
+                <td className="customer-data">{match.customer_name}</td>
+                <td className="customer-data">{match.customer_type}</td>
+                <td className="customer-data">{match.dob_or_reg_no}</td>
+                <td className="customer-data">{match.nationality_country}</td>
+                <td className="regulator-data">{match.matched_blacklist_name}</td>
+                <td className="regulator-data">
                   {match.matched_alias ? (
                     <span className="alias-badge">Alias: {match.matched_alias}</span>
                   ) : (
                     <span className="direct-badge">Direct</span>
                   )}
                 </td>
-                <td>{match.source}</td>
-                <td>
-                  {match.blacklist_type === 'police' ? (
-                    <span className="police-badge" title="Match from hardcoded police blacklist">
-                      🚔 Police
+                <td className="regulator-data">{match.source}</td>
+                <td className="regulator-data">
+                  {match.blacklist_type === 'regulator' ? (
+                    <span className="regulator-badge" title="Match from hardcoded regulator blacklist">
+                      ⚖️ Regulator
                     </span>
                   ) : (
                     <span className="user-badge" title="Match from user-uploaded blacklist">
@@ -224,20 +224,20 @@ export const ResultsGrid: React.FC<Props> = ({ results, processingTime, onViewDe
                     </span>
                   )}
                 </td>
-                <td>{match.effective_date}</td>
-                <td>
+                <td className="regulator-data">{match.effective_date}</td>
+                <td className="regulator-data">
                   <span className={`score-badge score-${Math.floor(match.similarity_score / 10) * 10}`}>
                     {match.similarity_score}%
                   </span>
                 </td>
-                <td className="reason-cell" title={match.match_reason}>
+                <td className="regulator-data reason-cell" title={match.match_reason}>
                   <span className={`match-type-badge match-type-${match.match_type}`}>
                     {match.match_type === 'direct' && '🎯 Direct'}
                     {match.match_type === 'alias' && '🔄 Alias'}
                     {match.match_type === 'fuzzy' && '🔍 Fuzzy'}
                   </span>
                 </td>
-                <td>
+                <td className="regulator-data">
                   <button 
                     className="btn-view-details"
                     onClick={() => onViewDetails(match)}

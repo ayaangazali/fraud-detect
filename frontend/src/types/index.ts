@@ -25,9 +25,9 @@ export interface CustomerUploadResponse {
 export interface BlacklistRow {
   full_name: string;
   alias_alternate_names?: string;
-  source: 'government' | 'regulator' | 'other' | 'POLICE';
+  source: 'government' | 'regulator' | 'other' | 'REGULATOR';
   effective_date: string;
-  blacklist_type?: 'police' | 'user'; // Track if from hardcoded police list or user upload
+  blacklist_type?: 'regulator' | 'user'; // Track if from hardcoded regulator list or user upload
 }
 
 export interface BlacklistValidationError {
@@ -55,7 +55,7 @@ export interface MatchResult {
   source: string;
   effective_date: string;
   similarity_score: number;
-  blacklist_type: 'police' | 'user';
+  blacklist_type: 'regulator' | 'user';
   match_type: 'direct' | 'alias' | 'fuzzy';
   match_reason: string;
   matched_field: string;

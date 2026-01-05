@@ -17,7 +17,7 @@ export function DashboardStats({ customerData, blacklistData, results, t }: Dash
     ? (results.reduce((sum, r) => sum + r.similarity_score, 0) / results.length).toFixed(1)
     : '0';
 
-  const policeMatches = results.filter(r => r.blacklist_type === 'police').length;
+  const regulatorMatches = results.filter(r => r.blacklist_type === 'regulator').length;
   const userMatches = results.filter(r => r.blacklist_type === 'user').length;
   const highRisk = results.filter(r => r.similarity_score >= 90).length;
   const mediumRisk = results.filter(r => r.similarity_score >= 75 && r.similarity_score < 90).length;
@@ -66,11 +66,11 @@ export function DashboardStats({ customerData, blacklistData, results, t }: Dash
           </div>
         </div>
 
-        <div className="stat-card highlight-police">
-          <div className="stat-icon">🚔</div>
+        <div className="stat-card highlight-regulator">
+          <div className="stat-icon">⚖️</div>
           <div className="stat-content">
-            <div className="stat-value">{policeMatches.toLocaleString()}</div>
-            <div className="stat-label">{t('policeMatches')}</div>
+            <div className="stat-value">{regulatorMatches.toLocaleString()}</div>
+            <div className="stat-label">{t('regulatorMatches')}</div>
           </div>
         </div>
 

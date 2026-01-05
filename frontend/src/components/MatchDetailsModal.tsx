@@ -46,8 +46,8 @@ export function MatchDetailsModal({ match, onClose, t }: MatchDetailsModalProps)
             <h3>⚠️ {t('blacklistMatch')}</h3>
             <div className="detail-value blacklist-name">{match.matched_blacklist_name}</div>
             <div className="detail-meta">
-              {match.blacklist_type === 'police' ? (
-                <span className="badge badge-police">🚔 {t('policeLabel')}</span>
+              {match.blacklist_type === 'regulator' ? (
+                <span className="badge badge-regulator">⚖️ {t('regulatorLabel')}</span>
               ) : (
                 <span className="badge badge-user">📋 {t('userLabel')}</span>
               )}

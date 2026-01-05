@@ -2,7 +2,7 @@
 import { Router, Request, Response } from 'express';
 import { performFuzzyMatching } from '../utils/fuzzyMatcher';
 import { ScreeningRequest, ScreeningResponse, BlacklistRow } from '../types';
-import { POLICE_BLACKLIST } from '../data/police-blacklist';
+import { REGULATOR_BLACKLIST } from '../data/regulator-blacklist';
 
 const router = Router();
 
@@ -29,10 +29,10 @@ router.post('/screen', async (req: Request, res: Response) => {
 
     const startTime = Date.now();
 
-    // Prepare police blacklist with blacklist_type marker
-    const policeBlacklist: BlacklistRow[] = POLICE_BLACKLIST.map(entry => ({
+    // Prepare regulator blacklist with blacklist_type marker
+    const regulatorBlacklist: BlacklistRow[] = REGULATOR_BLACKLIST.map(entry => ({
       ...entry,
-      blacklist_type: 'police' as const,
+      blacklist_type: 'regulator' as const,
     }));
 
     // Prepare user blacklist with blacklist_type marker
@@ -42,9 +42,9 @@ router.post('/screen', async (req: Request, res: Response) => {
     }));
 
     // Merge both blacklists for screening
-    const combinedBlacklist = [...policeBlacklist, ...userBlacklist];
+    const combinedBlacklist = [...regulatorBlacklist, ...userBlacklist];
 
-    console.log(`Screening against ${policeBlacklist.length} police entries and ${userBlacklist.length} user entries`);
+    console.log(`Screening against ${regulatorBlacklist.length} regulator entries and ${userBlacklist.length} user entries`);
 
     // Perform fuzzy matching
     const matches = performFuzzyMatching(
