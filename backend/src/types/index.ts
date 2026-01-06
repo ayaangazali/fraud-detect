@@ -96,12 +96,17 @@ export interface KamcoClient {
 }
 
 export interface ScreeningEntry {
-  full_name: string;
-  alias_alternate_names?: string;
-  dob_or_reg_no?: string;
-  nationality_country?: string;
-  source?: string;
-  effective_date?: string;
+  crm_reference: string; // Customer reference from CRM
+  wc1_ref: string; // World-Check reference
+  crm_name: string; // Name in CRM
+  primary_name: string; // Primary name (can be same as crm_name)
+  match_score: string; // Match score as string (will be converted to number)
+  match_strength: 'WEAK' | 'MEDIUM' | 'STRONG' | 'VERY_STRONG'; // Match strength
+  change_type: 'new' | 'update' | 'delete'; // Type of change
+  change_field: string; // Field that changed
+  from_val: string; // Previous value (date or 'N/A')
+  to_val: string; // New value (date)
+  record_date: string; // Date of record
 }
 
 export interface ScreeningListUploadResponse {

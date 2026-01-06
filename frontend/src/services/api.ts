@@ -71,11 +71,17 @@ export const api = {
 
   // NEW WORKFLOW APIS
   
-  // Upload screening list (3rd Excel)
+  // Upload screening list (Excel file with Change Log sheet)
   uploadScreeningList: async (file: File): Promise<any> => {
-    const text = await file.text();
+    // Read file as ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    // Convert to base64
+    const base64 = btoa(
+      new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+    
     const response = await axios.post(`${API_BASE_URL}/upload/screening-list`, {
-      csvData: text,
+      excelData: base64,
     });
     return response.data;
   },

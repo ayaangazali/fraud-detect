@@ -1,6 +1,6 @@
 // src/routes/screeningRoutesV2.ts
 import { Router, Request, Response } from 'express';
-import Papa from 'papaparse';
+import * as ExcelJS from 'exceljs';
 import { screeningServiceV2 } from '../services/screeningServiceV2';
 import { ScreeningEntry, ScreeningListUploadResponse } from '../types';
 
@@ -8,48 +8,71 @@ const router = Router();
 
 /**
  * POST /api/upload/screening-list
- * Upload screening list (3rd Excel) for comparison against KAMCO database
+ * Upload screening list (Excel file with Change Log sheet) for comparison against KAMCO database
  */
 router.post('/upload/screening-list', async (req: Request, res: Response) => {
   try {
-    const { csvData } = req.body;
+    const { excelData } = req.body;
 
-    if (!csvData) {
-      return res.status(400).json({ error: 'CSV data is required' });
+    if (!excelData) {
+      return res.status(400).json({ error: 'Excel data is required' });
     }
 
-    // Parse CSV
-    const parseResult = Papa.parse<any>(csvData, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (header) => header.trim().toLowerCase().replace(/\s+/g, '_'),
+    // Parse Excel data (base64)
+    const buffer = Buffer.from(excelData, 'base64');
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength));
+
+    // Get the "Change Log" sheet (2nd sheet)
+    const changeLogSheet = workbook.getWorksheet('Change Log') || workbook.getWorksheet(2);
+    
+    if (!changeLogSheet) {
+      return res.status(400).json({ error: 'Change Log sheet not found in Excel file' });
+    }
+
+    const rows: ScreeningEntry[] = [];
+    const errors: any[] = [];
+
+    // Read rows from Change Log sheet (skip header)
+    changeLogSheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // Skip header
+
+      try {
+        const entry: ScreeningEntry = {
+          crm_reference: String(row.getCell(1).value || ''),
+          wc1_ref: String(row.getCell(2).value || ''),
+          crm_name: String(row.getCell(3).value || ''),
+          primary_name: String(row.getCell(4).value || ''),
+          match_score: String(row.getCell(5).value || '0'),
+          match_strength: String(row.getCell(6).value || 'WEAK') as any,
+          change_type: String(row.getCell(7).value || 'update') as any,
+          change_field: String(row.getCell(8).value || ''),
+          from_val: String(row.getCell(9).value || 'N/A'),
+          to_val: String(row.getCell(10).value || ''),
+          record_date: String(row.getCell(11).value || ''),
+        };
+
+        // Validate required fields
+        if (entry.crm_name && entry.crm_name.length > 2) {
+          rows.push(entry);
+        }
+      } catch (error: any) {
+        errors.push({
+          row: rowNumber,
+          error: error.message,
+        });
+      }
     });
 
-    if (parseResult.errors.length > 0) {
-      console.error('CSV parsing errors:', parseResult.errors);
-    }
-
-    const rows: ScreeningEntry[] = parseResult.data.map((row) => ({
-      full_name: row.full_name || row.name || row.full_name_en || '',
-      alias_alternate_names: row.alias_alternate_names || row.aliases || row.alternate_names || '',
-      dob_or_reg_no: row.dob_or_reg_no || row.date_of_birth || row.reg_no || '',
-      nationality_country: row.nationality_country || row.nationality || row.country || '',
-      source: row.source || 'User Upload',
-      effective_date: row.effective_date || new Date().toISOString().split('T')[0],
-    }));
-
-    // Filter valid rows
-    const validRows = rows.filter((row) => row.full_name && row.full_name.length > 2);
-
     const response: ScreeningListUploadResponse = {
-      rows: validRows,
-      preview: validRows.slice(0, 5),
-      errors: [],
-      totalRows: parseResult.data.length,
-      validRows: validRows.length,
+      rows: rows,
+      preview: rows.slice(0, 5),
+      errors: errors,
+      totalRows: changeLogSheet.rowCount - 1, // Exclude header
+      validRows: rows.length,
     };
 
-    console.log(`✅ Screening list uploaded: ${validRows.length} valid entries`);
+    console.log(`✅ Screening list uploaded: ${rows.length} valid entries from Change Log sheet`);
 
     res.json(response);
   } catch (error: any) {

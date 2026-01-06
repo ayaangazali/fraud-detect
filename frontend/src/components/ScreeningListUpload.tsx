@@ -36,8 +36,8 @@ const ScreeningListUpload: React.FC<ScreeningListUploadProps> = ({ onUploadCompl
   };
 
   const handleFileSelect = (selectedFile: File) => {
-    if (!selectedFile.name.endsWith('.csv')) {
-      setError('Please upload a CSV file');
+    if (!selectedFile.name.endsWith('.xlsx')) {
+      setError('Please upload an Excel (.xlsx) file');
       return;
     }
 
@@ -80,7 +80,7 @@ const ScreeningListUpload: React.FC<ScreeningListUploadProps> = ({ onUploadCompl
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv"
+          accept=".xlsx"
           onChange={(e) => e.target.files && handleFileSelect(e.target.files[0])}
           style={{ display: 'none' }}
         />
@@ -120,7 +120,7 @@ const ScreeningListUpload: React.FC<ScreeningListUploadProps> = ({ onUploadCompl
             <p className="drop-zone-text">
               <span className="drop-zone-highlight">Click to upload</span> or drag and drop
             </p>
-            <p className="drop-zone-hint">CSV file with screening entries</p>
+            <p className="drop-zone-hint">Excel file (.xlsx) with Change Log sheet</p>
           </div>
         )}
       </div>

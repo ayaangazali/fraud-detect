@@ -65,8 +65,8 @@ export class ScreeningServiceV2 {
         continue; // Skip fuzzy if direct match found
       }
 
-      // 2. ALIAS MATCH (if enabled)
-      if (options.includeAliases && screeningEntry.alias_alternate_names) {
+      // 2. ALIAS MATCH (if enabled and primary_name differs from crm_name)
+      if (options.includeAliases && screeningEntry.primary_name !== screeningEntry.crm_name) {
         const aliasMatch = this.findAliasMatch(screeningEntry);
         if (aliasMatch) {
           matches.push(
@@ -100,7 +100,7 @@ export class ScreeningServiceV2 {
    * Find exact name match in KAMCO database
    */
   private findDirectMatch(screeningEntry: ScreeningEntry): KamcoClient | null {
-    const normalizedScreeningName = this.normalizeName(screeningEntry.full_name);
+    const normalizedScreeningName = this.normalizeName(screeningEntry.crm_name);
 
     return (
       this.kamcoClients.find((client) => {
@@ -111,26 +111,22 @@ export class ScreeningServiceV2 {
   }
 
   /**
-   * Find alias match in KAMCO database
+   * Find alias match in KAMCO database (using primary_name if different from crm_name)
    */
   private findAliasMatch(
     screeningEntry: ScreeningEntry
   ): { client: KamcoClient; alias: string } | null {
-    if (!screeningEntry.alias_alternate_names) return null;
-
-    const aliases = screeningEntry.alias_alternate_names
-      .split(/[,;|]/)
-      .map((a) => this.normalizeName(a.trim()))
-      .filter((a) => a.length > 2);
-
-    for (const alias of aliases) {
+    // Check if primary_name is different from crm_name (acts as alias)
+    if (screeningEntry.primary_name && screeningEntry.primary_name !== screeningEntry.crm_name) {
+      const normalizedPrimaryName = this.normalizeName(screeningEntry.primary_name);
+      
       const matchedClient = this.kamcoClients.find((client) => {
         const normalizedClientName = this.normalizeName(client.name);
-        return normalizedClientName === alias;
+        return normalizedClientName === normalizedPrimaryName;
       });
 
       if (matchedClient) {
-        return { client: matchedClient, alias };
+        return { client: matchedClient, alias: screeningEntry.primary_name };
       }
     }
 
@@ -143,7 +139,7 @@ export class ScreeningServiceV2 {
   private findFuzzyMatches(screeningEntry: ScreeningEntry, threshold: number): ExtendedMatchResult[] {
     if (!this.fuzzySearcher) return [];
 
-    const searchResults: FuzeMatchResult[] = this.fuzzySearcher.search(screeningEntry.full_name);
+    const searchResults: FuzeMatchResult[] = this.fuzzySearcher.search(screeningEntry.crm_name);
     const matches: ExtendedMatchResult[] = [];
 
     for (const result of searchResults) {
@@ -179,11 +175,11 @@ export class ScreeningServiceV2 {
       dob_or_reg_no: kamcoClient.dob_or_reg_no,
       nationality_country: kamcoClient.nationality_country,
 
-      // Matched data (from screening list - 3rd Excel)
-      matched_blacklist_name: screeningEntry.full_name,
-      matched_alias: screeningEntry.alias_alternate_names || null,
-      source: screeningEntry.source || 'Unknown',
-      effective_date: screeningEntry.effective_date || 'N/A',
+      // Matched data (from screening list Change Log - 2nd sheet)
+      matched_blacklist_name: screeningEntry.crm_name,
+      matched_alias: screeningEntry.primary_name !== screeningEntry.crm_name ? screeningEntry.primary_name : null,
+      source: screeningEntry.wc1_ref || 'Unknown',
+      effective_date: screeningEntry.record_date || 'N/A',
 
       // Match metadata
       similarity_score: similarityScore,
@@ -196,7 +192,7 @@ export class ScreeningServiceV2 {
       score_breakdown: {
         name_similarity: similarityScore,
         alias_similarity: 0,
-        best_match: screeningEntry.full_name,
+        best_match: screeningEntry.crm_name,
       },
 
       // Review state
