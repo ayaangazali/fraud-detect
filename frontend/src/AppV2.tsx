@@ -31,6 +31,8 @@ function AppV2() {
   const [screening, setScreening] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<any | null>(null);
   const [showLogbookModal, setShowLogbookModal] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [flaggedCount, setFlaggedCount] = useState(0);
   
   const { t, toggleLanguage, isArabic } = useLanguage();
 
@@ -84,7 +86,47 @@ function AppV2() {
 
   const handleReviewComplete = (summary: ReviewSummary) => {
     setReviewSummary(summary);
+    setFlaggedCount(summary.flagged);
     setViewMode('complete');
+  };
+
+  const handleGenerateDashboardPDF = async () => {
+    if (flaggedCount === 0) {
+      alert('No flagged cases to generate report');
+      return;
+    }
+
+    setGeneratingPDF(true);
+    try {
+      const reviewData = {
+        summary: {
+          total: screeningResults?.matches?.length || 0,
+          flagged: flaggedCount,
+          safe: 0,
+          skipped: 0,
+        },
+        matches: screeningResults?.matches || [],
+        flaggedMatches: [],
+      };
+
+      const blob = await api.generatePDF(reviewData);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const date = new Date().toISOString().split('T')[0];
+      a.download = `KAMCO_Screening_Report_${date}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      alert('✅ PDF report generated successfully!');
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert('❌ Failed to generate PDF report. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
+    }
   };
 
   const handleUploadNew = () => {
@@ -217,6 +259,15 @@ function AppV2() {
                     >
                       ← Back to Screening
                     </button>
+                    {flaggedCount > 0 && (
+                      <button
+                        className="generate-pdf-btn"
+                        onClick={handleGenerateDashboardPDF}
+                        disabled={generatingPDF}
+                      >
+                        {generatingPDF ? '⏳ Generating...' : '📄 Generate Report'}
+                      </button>
+                    )}
                     <button
                       className="enter-review-btn"
                       onClick={handleEnterReviewMode}

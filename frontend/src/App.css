@@ -2371,6 +2371,23 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.complete-btn.pdf-report {
+  background: linear-gradient(135deg, #d9480f 0%, #fd7e14 100%);
+  color: white;
+  font-weight: 700;
+}
+
+.complete-btn.pdf-report:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e8590c 0%, #ff922b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(253, 126, 20, 0.3);
+}
+
+.complete-btn.pdf-report:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .complete-btn.secondary {
   background: var(--bg-tertiary);
   color: var(--text-primary);
@@ -3268,6 +3285,29 @@ button:disabled {
   background: var(--customer-text);
   transform: translateY(-2px);
   box-shadow: var(--shadow);
+}
+
+.generate-pdf-btn {
+  background: linear-gradient(135deg, #d9480f 0%, #fd7e14 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.generate-pdf-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e8590c 0%, #ff922b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(253, 126, 20, 0.3);
+}
+
+.generate-pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .upload-new-btn {

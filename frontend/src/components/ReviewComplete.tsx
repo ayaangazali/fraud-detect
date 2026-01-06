@@ -21,6 +21,7 @@ const ReviewComplete: React.FC<ReviewCompleteProps> = ({
   onReturnToDashboard,
 }) => {
   const [exporting, setExporting] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   const handleExportFlagged = async () => {
     if (summary.flagged === 0) {
@@ -48,6 +49,35 @@ const ReviewComplete: React.FC<ReviewCompleteProps> = ({
       alert('❌ Failed to export flagged cases. Please try again.');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleGeneratePDFReport = async () => {
+    setGeneratingPDF(true);
+    try {
+      const reviewData = {
+        summary: summary,
+        matches: [], // We'll pass empty for completed review
+        flaggedMatches: [], // The backend will read from logbook
+      };
+
+      const blob = await api.generatePDF(reviewData);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const date = new Date().toISOString().split('T')[0];
+      a.download = `KAMCO_Screening_Report_${date}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      alert('✅ PDF report generated successfully!');
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert('❌ Failed to generate PDF report. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
     }
   };
 
@@ -91,14 +121,25 @@ const ReviewComplete: React.FC<ReviewCompleteProps> = ({
         {/* Actions */}
         <div className="complete-actions">
           {summary.flagged > 0 && (
-            <button 
-              className="complete-btn excel-export" 
-              onClick={handleExportFlagged}
-              disabled={exporting}
-            >
-              <span>📊</span>
-              {exporting ? 'Exporting...' : 'Download Flagged Cases (Excel)'}
-            </button>
+            <>
+              <button 
+                className="complete-btn pdf-report" 
+                onClick={handleGeneratePDFReport}
+                disabled={generatingPDF}
+              >
+                <span>📄</span>
+                {generatingPDF ? 'Generating...' : 'Download PDF Report'}
+              </button>
+
+              <button 
+                className="complete-btn excel-export" 
+                onClick={handleExportFlagged}
+                disabled={exporting}
+              >
+                <span>📊</span>
+                {exporting ? 'Exporting...' : 'Download Flagged Cases (Excel)'}
+              </button>
+            </>
           )}
 
           <button className="complete-btn primary" onClick={onUploadNew}>
