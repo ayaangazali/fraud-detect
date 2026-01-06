@@ -1,103 +1,204 @@
-# 🔍 AML/KYC Name Screening System
+# Kamco Compliance Screening System
 
-A comprehensive full-stack application for Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance screening with bulk import, fuzzy name matching, and Excel export capabilities - optimized for Middle Eastern markets.
+A comprehensive web application for compliance screening combining multi-sheet Excel parsing, fuzzy name matching, and intelligent review workflows.
+
+## 🎯 Project Overview
+
+**Purpose**: Screen blacklist Excel files against pre-loaded Kamco database (Clients, Vendors, Staff, Tenants, Others) to identify potential compliance violations.
+
+**Architecture**:
+- **Frontend**: React 18 + TypeScript + Vite (Port 5173)
+- **Backend**: FastAPI + SQLite (Port 8000)
+- **Database**: SQLite with 8 tables (Kamco data pre-loaded)
+- **Matching**: Fuzzy matching with Actor field extraction (Clients/Vendors only)
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### 1. Setup Frontend
 ```bash
+cd frontend
 npm install
-cd frontend && npm install && cd ..
-cd backend && npm install && cd ..
-```
-
-### 2. Start Application
-```bash
 npm run dev
 ```
+Frontend runs at: **http://localhost:5173**
 
-This starts:
-- **Backend** on http://localhost:5000
-- **Frontend** on http://localhost:3000
+**Test Credentials**:
+- Screener: `screener` / `screener123`
+- Checker: `checker` / `checker123`
+- Finalizer: `finalizer` / `finalizer123`
 
-### 3. Open Browser
-Navigate to: **http://localhost:3000**
+### 2. Setup Backend
+```bash
+cd backend
+pip install -r requirements.txt
+python3 seed_database.py
+python3 main.py
+```
+Backend runs at: **http://localhost:8000**
+API Docs: **http://localhost:8000/docs**
 
 ## 📁 Project Structure
 
 ```
 Kamco/
-├── frontend/              # React + TypeScript frontend
+├── frontend/                    # React application (Port 5173)
 │   ├── src/
-│   │   ├── components/    # UI components
-│   │   ├── services/      # API client
-│   │   └── types/         # TypeScript types
+│   │   ├── pages/
+│   │   │   ├── Login.tsx       # 3 roles: screener, checker, finalizer
+│   │   │   └── Dashboard.tsx   # 6 tabs: All/Clients/Vendors/Staff/Tenants/Others
+│   │   ├── components/
+│   │   │   ├── Dashboard/      # FileUpload, InReviewQueue, FlaggedItems, StatsCards, CheckerReview
+│   │   │   ├── Modals/         # FlagModal, UndoModal
+│   │   │   ├── Toast/          # Toast notifications (4 types)
+│   │   │   └── Archive/        # Old unused components
+│   │   ├── hooks/              # useToast custom hook
+│   │   ├── services/           # API client
+│   │   └── AppRouter.tsx       # Route protection
 │   └── package.json
 │
-├── backend/               # Node.js + Express backend
-│   ├── src/
-│   │   ├── routes/        # API endpoints
-│   │   ├── utils/         # Business logic
-│   │   └── types/         # TypeScript types
-│   └── package.json
+├── backend/                     # FastAPI application (Port 8000)
+│   ├── main.py                 # FastAPI app entry point
+│   ├── requirements.txt        # Python dependencies
+│   ├── seed_database.py        # Database seeding (20 pre-loaded records)
+│   ├── database/
+│   │   ├── connection.py       # SQLite connection & session
+│   │   └── kamco.db           # SQLite database
+│   ├── models/
+│   │   └── database.py         # SQLAlchemy models (8 tables)
+│   ├── routes/
+│   │   ├── scan.py            # POST /api/scan/* endpoints
+│   │   └── review.py          # POST /api/review/* endpoints
+│   └── utils/
+│       ├── excel_parser.py    # Multi-sheet Excel parsing
+│       ├── actor_extractor.py # Actor field extraction (Clients/Vendors)
+│       ├── fuzzy_matcher.py   # Fuzzy matching (rapidfuzz)
+│       └── logbook.py         # Deduplication logic
 │
-├── sample-data/           # Mock data files
-│   ├── customers-middle-east.csv      # 50 Middle Eastern customers
-│   └── blacklist-middle-east.csv      # 40 sanctioned entities
+├── sample-data/               # Test Excel files
+│   └── sample-blacklist.xlsx  # Sample blacklist with 5 sheets
 │
-├── docs/                  # Documentation
-│   ├── README.md
-│   ├── QUICKSTART.md
-│   └── IMPLEMENTATION.md
+├── docs/
+│   └── old/                   # Archived documentation
 │
-└── package.json           # Root workspace config
+└── README.md                  # This file
 ```
 
-## 📊 Sample Data
+## 📊 Database
 
-### Customer Data (`customers-middle-east.csv`)
-- **50 realistic entries** with mostly Arabic names
-- Demographics: Kuwait, UAE, Saudi Arabia, Bahrain, Qatar, and other Middle Eastern countries
-- Mix of:
-  - 80% Arabic/Middle Eastern names (Mohammed, Fatima, Abdullah, etc.)
-  - 20% Western names (John, David, Robert)
-- Includes both individuals and corporate entities
-- Realistic company registration numbers
+### Pre-loaded Kamco Data (20 records)
+- **Clients** (5) - With Actor field (Representative)
+- **Vendors** (4) - With Actor field (Agent)
+- **Staff** (5) - No actor field
+- **Tenants** (3) - No actor field
+- **Others** (3) - No actor field
 
-### Blacklist Data (`blacklist-middle-east.csv`)
-- **40 high-risk entities** based on real-world sanctioned lists
-- Includes known terrorists, sanctioned individuals, and dangerous entities
-- Multiple aliases for comprehensive matching
-- Sources: Government, Regulator, Other
-- Historical dates from actual sanctions
-
-**⚠️ Note:** The blacklist contains real names of dangerous individuals for demonstration purposes. This is realistic data for AML/KYC systems.
+### Workflow Tables
+- **in_review_queue** - Pending matches
+- **flagged_items** - Flagged items (pending/approved/recheck/overridden)
+- **logbook** - Historical decisions (prevents duplicate reviews)
 
 ## 🎯 Features
 
-✅ **Bulk Import** - CSV/XLSX upload for customers & blacklists  
-✅ **Smart Validation** - Real-time error detection  
-✅ **Fuzzy Matching** - 0-100% similarity threshold  
-✅ **Alias Support** - Match against alternate names  
-✅ **Results Grid** - Sortable, filterable results  
-✅ **Excel Export** - Generate compliance reports  
-✅ **Middle East Focus** - Arabic name support  
+✅ **Multi-sheet Excel Parsing** - Reads 5 sheets (Clients, Vendors, Staff, Tenants, Others)
+✅ **Fuzzy Matching** - 80% threshold, token_sort_ratio (rapidfuzz)
+✅ **Actor Extraction** - Smart extraction from Clients/Vendors only
+✅ **Logbook Deduplication** - Prevents duplicate reviews
+✅ **Role-based Workflows** - Screener → Checker → Finalizer
+✅ **Flag with Reason** - Minimum 10 characters
+✅ **Undo with Validation** - 2-step confirmation (checkbox + text)
+✅ **Toast Notifications** - Success, error, warning, info
+✅ **Protected Routes** - Token-based authentication
+✅ **Responsive Design** - Mobile-friendly UI
 
-## 🧪 Test the Application
+## 🔗 API Endpoints
 
-1. **Upload Customer File**
-   - Select `sample-data/customers-middle-east.csv`
-   - Click "Upload & Validate"
-   - ✅ Should show 50 customers
+### Health
+```
+GET /                    # Root
+GET /health             # Health check
+```
 
-2. **Upload Blacklist File**
-   - Select `sample-data/blacklist-middle-east.csv`
-   - Click "Upload & Validate"
-   - ✅ Should show 40 blacklist entries
+### Scan
+```
+POST /api/scan/upload   # Upload blacklist (preview)
+POST /api/scan/run      # Run full scan (parse → match → dedupe → queue)
+```
 
-3. **Run Screening**
-   - Set threshold: **75** (recommended)
-   - Enable "Include Aliases"
+### Review
+```
+GET  /api/review/queue       # Get items in review queue
+POST /api/review/flag        # Flag an item with reason
+POST /api/review/undo        # Undo a flag
+GET  /api/review/flagged     # Get flagged items
+POST /api/review/approve     # Checker approves flag
+POST /api/review/recheck     # Checker requests re-check
+POST /api/review/override    # Checker overrides flag
+```
+
+## 🧪 Testing
+
+### 1. Start Backend
+```bash
+cd backend
+python3 main.py
+# Runs at http://localhost:8000
+```
+
+### 2. Start Frontend
+```bash
+cd frontend
+npm run dev
+# Runs at http://localhost:5173
+```
+
+### 3. Login
+- URL: http://localhost:5173
+- Credentials: `screener/screener123`
+
+### 4. Upload Test File
+- Create Excel with 5 sheets (Clients, Vendors, Staff, Tenants, Others)
+- Each sheet has "Name" column with test names
+- Upload and click "Run Scan"
+- View matches in "In Review Queue"
+
+### 5. Test Workflows
+- **Flag**: Flag item with reason → Appears in "Flagged Items"
+- **Undo**: Undo flagged item (2-step confirmation)
+- **Checker**: Login as `checker/checker123` → Review flagged items
+- **Actions**: Approve (→ Logbook), Recheck (→ Queue), Override (→ Logbook)
+
+## 💡 How It Works
+
+### Scanning Flow
+1. **Upload** blacklist Excel with 5 sheets
+2. **Parse** each sheet and extract Name field
+3. **Match** each Kamco record against blacklist (80% threshold)
+4. **Extract Actor** for Clients/Vendors (75% threshold)
+5. **Deduplicate** against logbook (skip already reviewed)
+6. **Queue** new matches for review
+
+### Matching Example
+```
+Kamco: "Mohammed Al-Rashid" (Client)
+Actor: "Ahmed Hassan"
+Blacklist: "Muhammad Al-Rasheed", "Ahmed Hasan"
+
+Results:
+- Name match: 92% ✅ (above 80%) → Added to queue
+- Actor match: 87% ✅ (above 75%) → Added to queue
+```
+
+### Review Workflow
+```
+Screener → Flags item
+    ↓
+Checker → Reviews (3 options)
+    ├→ Approve → Logbook (flagged)
+    ├→ Recheck → Back to queue
+    └→ Override → Logbook (cleared)
+    ↓
+Finalizer → Reviews final decisions
+```
    - Click "Run Screening"
    - ✅ Should find matches (e.g., "Omar Abdullah Bin Laden")
 

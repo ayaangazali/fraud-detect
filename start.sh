@@ -1,19 +1,19 @@
 #!/bin/bash
-
-# Kill any processes on ports 3000 and 5001
-echo "🔧 Cleaning up ports..."
-lsof -ti:3000 | xargs kill -9 2>/dev/null || true
-lsof -ti:5001 | xargs kill -9 2>/dev/null || true
-
-echo "✅ Ports cleared!"
+echo "🚀 Starting Kamco Compliance Screening System..."
 echo ""
-echo "🚀 Starting AML/KYC Application..."
+echo "🧹 Cleaning up old processes..."
+pkill -f "python3.*main.py" 2>/dev/null || true
+pkill -f "npm run dev" 2>/dev/null || true
+lsof -ti :5173 | xargs kill -9 2>/dev/null || true
+lsof -ti :8000 | xargs kill -9 2>/dev/null || true
+sleep 2
+echo "✅ Ready to start"
 echo ""
-echo "Backend will run on: http://localhost:5001"
-echo "Frontend will run on: http://localhost:3000"
+echo "Starting Backend on port 8000..."
+cd /Users/ayaangazali/Documents/hackathons/Kamco/backend
+python3 main.py &
+sleep 3
 echo ""
-echo "Press Ctrl+C to stop both servers"
-echo ""
-
-# Start the application
+echo "Starting Frontend on port 5173..."
+cd /Users/ayaangazali/Documents/hackathons/Kamco/frontend
 npm run dev
