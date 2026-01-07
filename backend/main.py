@@ -11,7 +11,7 @@ import os
 load_dotenv()
 
 # Import routes
-from routes import scan, review, auth, checker, finalizer, upload
+from routes import scan, review, auth, checker, finalizer, upload, screening
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -51,6 +51,7 @@ app.include_router(scan.router, prefix="/api/scan", tags=["Scan"])
 app.include_router(review.router, prefix="/api/review", tags=["Review"])
 app.include_router(checker.router, prefix="/api/review/checker", tags=["Checker"])
 app.include_router(finalizer.router, prefix="/api/review/finalizer", tags=["Finalizer"])
+app.include_router(screening.router, prefix="/api/screening", tags=["Screening"])
 
 if __name__ == "__main__":
     import uvicorn
