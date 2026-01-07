@@ -2,7 +2,7 @@
 Authentication Routes
 User registration, login, token refresh, logout endpoints
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field, validator
@@ -21,6 +21,8 @@ from utils.auth import (
     get_current_active_user,
     security
 )
+from utils.audit_service import AuditService
+from models.audit_schema import AuditEventType, AuditSeverity
 
 router = APIRouter()
 
@@ -101,9 +103,19 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     
     Returns user details (without password)
     """
+    audit_service = AuditService(db)
+    
     # Check if email already exists
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
+        # Log failed registration attempt
+        audit_service.log_security_event(
+            event_type=AuditEventType.USER_CREATED,
+            action=f"Failed user registration attempt for email: {request.email} (email already exists)",
+            username=request.username,
+            success=False,
+            error_message="Email already registered"
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
@@ -112,6 +124,14 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     # Check if username already exists
     existing_username = db.query(User).filter(User.username == request.username).first()
     if existing_username:
+        # Log failed registration attempt
+        audit_service.log_security_event(
+            event_type=AuditEventType.USER_CREATED,
+            action=f"Failed user registration attempt for username: {request.username} (username taken)",
+            username=request.username,
+            success=False,
+            error_message="Username already taken"
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already taken"
@@ -131,6 +151,16 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     
+    # Log successful registration
+    audit_service.log_security_event(
+        event_type=AuditEventType.USER_CREATED,
+        action=f"New user registered: {new_user.username} (role: {new_user.role.value})",
+        user_id=new_user.id,
+        username=new_user.username,
+        success=True,
+        metadata={"email": new_user.email, "role": new_user.role.value}
+    )
+    
     return UserResponse(
         id=new_user.id,
         username=new_user.username,
@@ -143,7 +173,7 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest, db: Session = Depends(get_db)):
+async def login(request: LoginRequest, req: Request, db: Session = Depends(get_db)):
     """
     Login with email and password
     
@@ -152,10 +182,22 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     
     Returns access token (15 min), refresh token (7 days), and user info
     """
+    audit_service = AuditService(db)
+    ip_address = req.client.host if req.client else "Unknown"
+    
     # Authenticate user
     user = authenticate_user(db, request.email, request.password)
     
     if not user:
+        # Log failed login attempt
+        audit_service.log_security_event(
+            event_type=AuditEventType.AUTH_FAILED,
+            action=f"Failed login attempt for email: {request.email}",
+            username=request.email,
+            ip_address=ip_address,
+            success=False,
+            error_message="Incorrect email or password"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -163,6 +205,16 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         )
     
     if not user.is_active:
+        # Log inactive account access attempt
+        audit_service.log_security_event(
+            event_type=AuditEventType.AUTH_FAILED,
+            action=f"Login attempt with inactive account: {user.username}",
+            user_id=user.id,
+            username=user.username,
+            ip_address=ip_address,
+            success=False,
+            error_message="User account is inactive"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive"
@@ -190,6 +242,18 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     )
     db.add(refresh_token)
     db.commit()
+    
+    # Log successful login
+    audit_service.log_security_event(
+        event_type=AuditEventType.AUTH_LOGIN,
+        action=f"User logged in: {user.username}",
+        user_id=user.id,
+        username=user.username,
+        user_role=user.role.value,
+        ip_address=ip_address,
+        success=True,
+        metadata={"email": user.email}
+    )
     
     return TokenResponse(
         access_token=access_token,
@@ -271,6 +335,8 @@ async def logout(
     
     Requires valid access token in Authorization header
     """
+    audit_service = AuditService(db)
+    
     # Revoke all user's refresh tokens
     db.query(RefreshToken).filter(
         RefreshToken.user_id == current_user.id,
@@ -278,6 +344,16 @@ async def logout(
     ).update({"is_revoked": True})
     
     db.commit()
+    
+    # Log logout
+    audit_service.log_security_event(
+        event_type=AuditEventType.AUTH_LOGOUT,
+        action=f"User logged out: {current_user.username}",
+        user_id=current_user.id,
+        username=current_user.username,
+        user_role=current_user.role.value,
+        success=True
+    )
     
     return MessageResponse(
         message="Successfully logged out",

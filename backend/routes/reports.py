@@ -17,6 +17,8 @@ from utils.auth import get_current_user
 from utils.report_service import get_report_service
 from utils.excel_generator import get_excel_generator, get_csv_generator
 from utils.pdf_generator import get_pdf_generator
+from utils.audit_service import AuditService
+from models.audit_schema import AuditEventType, AuditSeverity
 from datetime import datetime
 from typing import List, Optional
 import os
@@ -118,6 +120,24 @@ async def generate_report(
         filename = os.path.basename(filepath)
         report_id = filename.rsplit('.', 1)[0]  # Use filename without extension as ID
         
+        # Log report generation
+        audit_service = AuditService(db)
+        audit_service.log_user_action(
+            event_type=AuditEventType.REPORT_GENERATED,
+            action=f"Generated {request.report_type.value} report in {request.report_format.value} format",
+            user_id=current_user.id,
+            username=current_user.username,
+            user_role=current_user.role.value,
+            resource_type="report",
+            resource_id=report_id,
+            metadata={
+                "report_type": request.report_type.value,
+                "report_format": request.report_format.value,
+                "file_size": file_size,
+                "filters": request.filters.dict() if request.filters else None
+            }
+        )
+        
         # Build response
         return ReportMetadataResponse(
             report_id=report_id,
@@ -146,7 +166,8 @@ async def generate_report(
 @router.get("/download/{filename}")
 async def download_report(
     filename: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """
     Download a generated report file
@@ -167,6 +188,19 @@ async def download_report(
     }
     
     media_type = media_types.get(ext, 'application/octet-stream')
+    
+    # Log report download
+    audit_service = AuditService(db)
+    audit_service.log_user_action(
+        event_type=AuditEventType.REPORT_DOWNLOADED,
+        action=f"Downloaded report: {filename}",
+        user_id=current_user.id,
+        username=current_user.username,
+        user_role=current_user.role.value,
+        resource_type="report",
+        resource_id=filename,
+        metadata={"filename": filename, "format": ext}
+    )
     
     return FileResponse(
         path=filepath,

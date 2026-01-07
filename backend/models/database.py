@@ -329,3 +329,88 @@ class FlaggedItem(Base):
             "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
             "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None
         }
+
+
+class AuditLog(Base):
+    """
+    Comprehensive audit log for system-wide event tracking
+    Separate from Logbook (which tracks screening decisions)
+    Logs API calls, security events, data changes, user actions
+    """
+    __tablename__ = "audit_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Event classification
+    event_type = Column(String(100), nullable=False, index=True)
+    severity = Column(String(20), nullable=False, default="low", index=True)
+    
+    # User context
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    username = Column(String(100), index=True)
+    user_role = Column(String(50))
+    
+    # Request context
+    endpoint = Column(String(500), index=True)
+    http_method = Column(String(10))
+    ip_address = Column(String(50), index=True)
+    user_agent = Column(String(500))
+    
+    # Action details
+    action = Column(Text, nullable=False)
+    resource_type = Column(String(100), index=True)
+    resource_id = Column(String(100), index=True)
+    
+    # Data tracking (JSON stored as TEXT)
+    before_state = Column(Text)  # JSON string
+    after_state = Column(Text)   # JSON string
+    metadata_json = Column(Text)      # JSON string for additional context (renamed to avoid SQLAlchemy reserved word)
+    tags = Column(Text)          # JSON array of tags
+    
+    # Results
+    success = Column(Boolean, default=True, nullable=False, index=True)
+    error_message = Column(Text)
+    execution_time_ms = Column(Float)
+    
+    # Timestamp
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+    
+    # Composite indexes for common queries
+    __table_args__ = (
+        Index('idx_event_timestamp', 'event_type', 'timestamp'),
+        Index('idx_user_timestamp', 'user_id', 'timestamp'),
+        Index('idx_severity_timestamp', 'severity', 'timestamp'),
+        Index('idx_resource', 'resource_type', 'resource_id'),
+        Index('idx_success_timestamp', 'success', 'timestamp'),
+    )
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        import json
+        
+        return {
+            "id": self.id,
+            "event_type": self.event_type,
+            "severity": self.severity,
+            "user_id": self.user_id,
+            "username": self.username,
+            "user_role": self.user_role,
+            "endpoint": self.endpoint,
+            "http_method": self.http_method,
+            "ip_address": self.ip_address,
+            "user_agent": self.user_agent,
+            "action": self.action,
+            "resource_type": self.resource_type,
+            "resource_id": self.resource_id,
+            "before_state": json.loads(self.before_state) if self.before_state else None,
+            "after_state": json.loads(self.after_state) if self.after_state else None,
+            "metadata": json.loads(self.metadata_json) if self.metadata_json else None,
+            "tags": json.loads(self.tags) if self.tags else None,
+            "success": self.success,
+            "error_message": self.error_message,
+            "execution_time_ms": self.execution_time_ms,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None
+        }

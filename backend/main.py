@@ -11,7 +11,10 @@ import os
 load_dotenv()
 
 # Import routes
-from routes import scan, review, auth, checker, finalizer, upload, screening, reports
+from routes import scan, review, auth, checker, finalizer, upload, screening, reports, audit
+
+# Import audit middleware
+from middleware.audit_middleware import setup_audit_middleware
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -30,6 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Setup audit middleware (must be after CORS)
+setup_audit_middleware(app)
 
 # Health check endpoint
 @app.get("/")
@@ -53,6 +59,7 @@ app.include_router(checker.router, prefix="/api/review/checker", tags=["Checker"
 app.include_router(finalizer.router, prefix="/api/review/finalizer", tags=["Finalizer"])
 app.include_router(screening.router, prefix="/api/screening", tags=["Screening"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+app.include_router(audit.router, prefix="/api/audit", tags=["Audit Logs"])
 
 if __name__ == "__main__":
     import uvicorn
