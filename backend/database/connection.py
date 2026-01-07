@@ -6,6 +6,9 @@ from sqlalchemy.orm import sessionmaker
 from models.database import Base
 import os
 
+# Import all models to register them with Base
+from models import auth  # noqa: F401
+
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/kamco.db")
 
 # Create engine

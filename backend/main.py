@@ -11,7 +11,7 @@ import os
 load_dotenv()
 
 # Import routes
-from routes import scan, review
+from routes import scan, review, auth
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -45,6 +45,7 @@ async def health_check():
     return {"status": "ok"}
 
 # Include routers
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(scan.router, prefix="/api/scan", tags=["Scan"])
 app.include_router(review.router, prefix="/api/review", tags=["Review"])
 
