@@ -4,7 +4,49 @@ Prevents re-scanning of previously reviewed items
 """
 from sqlalchemy.orm import Session
 from models.database import Logbook
-from typing import Optional
+from typing import Optional, Dict, Any
+from datetime import datetime
+import json
+
+
+def log_action(
+    db: Session,
+    user_id: int,
+    action: str,
+    details: str,
+    metadata: Optional[Dict[str, Any]] = None
+) -> None:
+    """
+    Log an action to the logbook for audit trail
+    
+    Args:
+        db: Database session
+        user_id: ID of user performing action
+        action: Action type (e.g., "BLACKLIST_UPLOADED")
+        details: Human-readable description
+        metadata: Optional additional data as dictionary
+    """
+    try:
+        # Create a simple log entry using Logbook model
+        # Note: This uses the existing Logbook model fields
+        logbook_entry = Logbook(
+            kamco_name="SYSTEM",
+            kamco_type="system_action",
+            kamco_id=user_id,
+            blacklist_name=action,
+            blacklist_source="system",
+            match_score=0.0,
+            reviewed_by=str(user_id),
+            decision="logged",
+            notes=f"{details} | Metadata: {json.dumps(metadata) if metadata else 'None'}"
+        )
+        
+        db.add(logbook_entry)
+        db.commit()
+    except Exception as e:
+        print(f"Warning: Could not log action: {str(e)}")
+        db.rollback()
+
 
 def check_if_reviewed(
     db: Session,

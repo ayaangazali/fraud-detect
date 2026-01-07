@@ -11,6 +11,7 @@ from models import auth  # noqa: F401
 from models import case  # noqa: F401
 from models import notification  # noqa: F401
 from models import report  # noqa: F401
+from models import blacklist  # noqa: F401
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/kamco.db")
 
