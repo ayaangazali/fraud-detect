@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
-import FileUpload from '../components/Dashboard/FileUpload';
-import InReviewQueue from '../components/Dashboard/InReviewQueue';
-import FlaggedItems from '../components/Dashboard/FlaggedItems';
-import StatsCards from '../components/Dashboard/StatsCards';
-import CheckerReview from '../components/Dashboard/CheckerReview';
+import FileUpload from '../components/Dashboard/FileUpload.tsx';
+import InReviewQueue from '../components/Dashboard/InReviewQueue.tsx';
+import FlaggedItems from '../components/Dashboard/FlaggedItems.tsx';
+import StatsCards from '../components/Dashboard/StatsCards.tsx';
+import CheckerReview from '../components/Dashboard/CheckerReview.tsx';
 
 type TabType = 'all' | 'clients' | 'vendors' | 'staff' | 'others';
 type ViewMode = 'overview' | 'checker-review';

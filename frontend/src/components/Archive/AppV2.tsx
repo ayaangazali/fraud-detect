@@ -1,16 +1,16 @@
 // src/AppV2.tsx - New workflow for screening list review
 import { useState } from 'react';
-import ScreeningListUpload from './components/ScreeningListUpload';
-import { ResultsGrid } from './components/ResultsGrid';
-import { DashboardStats } from './components/DashboardStats';
-import { LanguageSwitcher } from './components/LanguageSwitcher';
-import ReviewMode from './components/ReviewMode';
-import ReviewComplete from './components/ReviewComplete';
-import ViewDetailsModal from './components/ViewDetailsModal';
-import FlaggedLogbookModal from './components/FlaggedLogbookModal';
-import { useLanguage } from './hooks/useLanguage';
-import { api } from './services/api';
-import './App.css';
+import ScreeningListUpload from './ScreeningListUpload.tsx';
+import { ResultsGrid } from './ResultsGrid.tsx';
+import { DashboardStats } from './DashboardStats.tsx';
+import { LanguageSwitcher } from './LanguageSwitcher.tsx';
+import ReviewMode from './ReviewMode.tsx';
+import ReviewComplete from './ReviewComplete.tsx';
+import ViewDetailsModal from './ViewDetailsModal.tsx';
+import FlaggedLogbookModal from './FlaggedLogbookModal.tsx';
+import { useLanguage } from '../../hooks/useLanguage';
+import { api } from '../../services/api';
+import '../../App.css';
 
 type ViewMode = 'upload' | 'results' | 'review' | 'complete';
 

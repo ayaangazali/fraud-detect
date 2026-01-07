@@ -1,7 +1,7 @@
 // src/components/Dashboard/FlaggedItems.tsx
 import React, { useState } from 'react';
 import './FlaggedItems.css';
-import UndoModal from '../Modals/UndoModal';
+import UndoModal from '../Modals/UndoModal.tsx';
 
 interface FlaggedItemsProps {
   activeTab: string;

@@ -1,7 +1,7 @@
 // src/components/Dashboard/InReviewQueue.tsx
 import React, { useState } from 'react';
 import './InReviewQueue.css';
-import FlagModal from '../Modals/FlagModal';
+import FlagModal from '../Modals/FlagModal.tsx';
 
 interface InReviewQueueProps {
   activeTab: string;
