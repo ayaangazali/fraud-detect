@@ -1,5 +1,6 @@
 """
 Review routes - Handle flagging, approvals, and checker workflows
+Phase 6: Email notifications for flagged items
 """
 from fastapi import APIRouter, HTTPException, Depends, Body, Request
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from models.notification import EmailNotification, EmailType, EmailStatus
 from models.auth import User
 from utils.auth import require_screener, require_checker, get_current_user
 from utils.logbook import add_to_logbook
+from utils.email_service import get_email_service
 from datetime import datetime
 from typing import Optional
 import json
@@ -230,6 +232,19 @@ async def flag_item(
         db.commit()
         db.refresh(case)
         db.refresh(flagged_item)
+        
+        # Send email notification (Phase 6) - non-blocking
+        try:
+            email_service = get_email_service()
+            email_service.send_flagged_item_notification(
+                entity_name=queue_item.kamco_name,
+                entity_type=queue_item.kamco_type,
+                reason=flag_reason,
+                flagged_by=current_user.username
+            )
+        except Exception as e:
+            # Don't fail the flagging if email fails
+            print(f"Warning: Could not send flagged item email notification: {str(e)}")
         
         return {
             "success": True,

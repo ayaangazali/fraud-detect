@@ -1,6 +1,7 @@
 """
 Upload Route for Phase 4: Excel Parser Enhancement
 Handles blacklist Excel file uploads and parsing
+Updated in Phase 6: Added email notifications on upload completion
 """
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -12,6 +13,7 @@ from models.blacklist import BlacklistEntry
 from utils.excel_parser import ExcelParser, ExcelParserError, validate_blacklist_excel
 from utils.logbook import log_action
 from utils.auth import get_current_active_user
+from utils.email_service import get_email_service
 
 router = APIRouter()
 
@@ -106,6 +108,20 @@ async def upload_blacklist(
                 "stored_count": stored_count
             }
         )
+        
+        # Send email notification (Phase 6)
+        try:
+            email_service = get_email_service()
+            email_service.send_upload_completion_notification(
+                total_rows=summary['total_rows'],
+                valid_rows=stored_count,
+                errors_count=len(errors),
+                uploaded_by=current_user.username,
+                filename=file.filename
+            )
+        except Exception as e:
+            # Don't fail the upload if email fails
+            print(f"Warning: Could not send upload notification email: {str(e)}")
         
         return {
             "success": True,

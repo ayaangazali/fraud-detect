@@ -1,6 +1,7 @@
 """
 Finalizer Routes - Handle final approval workflow
 Finalizers provide final sign-off on flagged items and can override or escalate
+Phase 6: Email notifications for case decisions
 """
 from fastapi import APIRouter, HTTPException, Depends, Body, Request
 from sqlalchemy.orm import Session
@@ -11,6 +12,7 @@ from models.notification import EmailNotification, EmailType, EmailStatus
 from models.auth import User, UserRole
 from utils.auth import require_finalizer, get_current_user
 from utils.logbook import add_to_logbook
+from utils.email_service import get_email_service
 from datetime import datetime
 from typing import Optional
 import json
@@ -171,6 +173,20 @@ async def approve_final(
     )
     
     db.commit()
+    
+    # Send Phase 6 email notification - non-blocking
+    try:
+        email_service = get_email_service()
+        email_service.send_case_decision_notification(
+            case_id=case.id,
+            entity_name=queue_item.kamco_name,
+            decision="APPROVED",
+            decided_by=current_user.username,
+            notes=finalizer_notes
+        )
+    except Exception as e:
+        # Don't fail the approval if email fails
+        print(f"Warning: Could not send case decision email notification: {str(e)}")
     
     return {
         "success": True,
@@ -350,6 +366,21 @@ async def override_decision(
     )
     
     db.commit()
+    
+    # Send Phase 6 email notification for override - non-blocking
+    try:
+        email_service = get_email_service()
+        decision = "REJECTED" if override_action == "reject" else "OVERRIDE"
+        email_service.send_case_decision_notification(
+            case_id=case.id,
+            entity_name=queue_item.kamco_name,
+            decision=decision,
+            decided_by=current_user.username,
+            notes=f"{override_action.upper()}: {override_reason}"
+        )
+    except Exception as e:
+        # Don't fail the override if email fails
+        print(f"Warning: Could not send override email notification: {str(e)}")
     
     return {
         "success": True,

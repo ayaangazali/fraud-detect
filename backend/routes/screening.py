@@ -1,6 +1,7 @@
 """
 Screening API Route for Phase 5
 Compares Kamco entities against blacklist using fuzzy matching and Civil ID matching
+Updated in Phase 6: Added email notifications for high-risk matches
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -15,6 +16,7 @@ from utils.fuzzy_matcher_enhanced import FuzzyMatcherEnhanced
 from utils.civil_id_validator import CivilIDValidator
 from utils.auth import get_current_active_user
 from utils.logbook import log_action
+from utils.email_service import get_email_service
 
 router = APIRouter()
 
@@ -320,8 +322,19 @@ async def run_screening(
                     # db.commit()
                     result.flagged = True
                     flagged_count += 1
+                    
+                    # Send email notification for high-risk matches (Phase 6)
+                    email_service = get_email_service()
+                    email_service.send_screening_alert(
+                        entity_name=kamco['name'],
+                        entity_type=kamco['type'],
+                        blacklist_name=blacklist['name_arabic'],
+                        match_score=match['name_match_score'],
+                        risk_level=match['risk_level'],
+                        civil_id_match=match['civil_id_match']
+                    )
                 except Exception as e:
-                    print(f"Warning: Could not auto-flag: {str(e)}")
+                    print(f"Warning: Could not auto-flag or send email: {str(e)}")
             
             match_results.append(result)
         
