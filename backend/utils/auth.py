@@ -218,6 +218,75 @@ async def get_current_active_user(
     return current_user
 
 
+async def require_screener(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    Dependency to require user to have Screener role
+    
+    Args:
+        current_user: Current authenticated user
+        
+    Returns:
+        Current user if they have Screener role
+        
+    Raises:
+        HTTPException: If user is not a Screener
+    """
+    if current_user.role != UserRole.SCREENER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Screener role required for this action"
+        )
+    return current_user
+
+
+async def require_checker(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    Dependency to require user to have Checker role
+    
+    Args:
+        current_user: Current authenticated user
+        
+    Returns:
+        Current user if they have Checker role
+        
+    Raises:
+        HTTPException: If user is not a Checker
+    """
+    if current_user.role != UserRole.CHECKER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Checker role required for this action"
+        )
+    return current_user
+
+
+async def require_finalizer(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    Dependency to require user to have Finalizer role
+    
+    Args:
+        current_user: Current authenticated user
+        
+    Returns:
+        Current user if they have Finalizer role
+        
+    Raises:
+        HTTPException: If user is not a Finalizer
+    """
+    if current_user.role != UserRole.FINALIZER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Finalizer role required for this action"
+        )
+    return current_user
+
+
 def verify_refresh_token(token: str, db: Session) -> Optional[User]:
     """
     Verify a refresh token and return the associated user

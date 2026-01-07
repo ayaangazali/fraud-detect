@@ -16,6 +16,7 @@ class CaseStatus(str, enum.Enum):
     FLAGGED = "flagged"              # Flagged by screener, awaiting checker
     CHECKER_REVIEW = "checker_review" # Checker reviewing flag
     AWAITING_FINAL = "awaiting_final" # Awaiting finalizer approval
+    ESCALATED = "escalated"          # Escalated to management/legal
     CLEARED = "cleared"              # Cleared/approved
     CLOSED = "closed"                # Case closed
     REJECTED = "rejected"            # Rejected/dismissed

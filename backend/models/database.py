@@ -271,9 +271,18 @@ class FlaggedItem(Base):
     
     # Timestamps
     flagged_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    checker_assigned_at = Column(DateTime(timezone=True), nullable=True)
+    checker_reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    finalizer_reviewed_at = Column(DateTime(timezone=True), nullable=True)
     escalated_at = Column(DateTime(timezone=True))
     resolved_at = Column(DateTime(timezone=True))
     reviewed_at = Column(DateTime(timezone=True))
+    resolution_date = Column(DateTime(timezone=True), nullable=True)
+    
+    # Additional notes and tracking
+    checker_notes = Column(Text, nullable=True)
+    finalizer_notes = Column(Text, nullable=True)
+    escalation_level = Column(String(50), nullable=True)  # management, executive, legal
     
     # Legacy fields (for backward compatibility)
     flagged_by = Column(String(100))  # Will be deprecated in favor of flagged_by_id
