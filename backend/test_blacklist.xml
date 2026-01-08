@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blacklist>
+    <entry>
+        <name_english>John Smith</name_english>
+        <name_arabic>جون سميث</name_arabic>
+        <civil_id>123456789012</civil_id>
+        <passport_number>P123456</passport_number>
+        <nationality>Kuwait</nationality>
+        <source>UN Sanctions List</source>
+        <date_added>2024-01-15</date_added>
+        <notes>High-risk individual</notes>
+    </entry>
+    <entry>
+        <name_english>Mohammed Al-Rashid</name_english>
+        <name_arabic>محمد الرشيد</name_arabic>
+        <civil_id>298765432109</civil_id>
+        <nationality>Kuwait</nationality>
+        <source>Test Source</source>
+        <date_added>2024-02-01</date_added>
+        <notes>Test match for auto-screening</notes>
+    </entry>
+    <entry>
+        <name_english>Sarah Investment Corp</name_english>
+        <name_arabic>شركة سارة للاستثمار</name_arabic>
+        <civil_id>387654321098</civil_id>
+        <nationality>Kuwait</nationality>
+        <source>Test Source</source>
+        <date_added>2024-02-01</date_added>
+        <notes>Test company match</notes>
+    </entry>
+</blacklist>

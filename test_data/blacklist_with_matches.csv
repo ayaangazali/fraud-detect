@@ -1,0 +1,16 @@
+Name (English),Name (Arabic),Civil ID,Passport Number,Nationality,Source,Date Added,Notes
+Mohammed Al-Rashid,محمد الراشد,287654321001,K9876543,Kuwaiti,UN Sanctions List,2024-01-15,EXACT MATCH - High-risk individual
+Sarah Investment Corp,شركة سارة للاستثمار,N/A,N/A,Kuwaiti,OFAC List,2024-02-20,EXACT MATCH - Suspected shell company
+Tech Solutions International,تك سوليوشنز الدولية,N/A,N/A,International,EU Sanctions,2024-03-10,EXACT MATCH - Technology export violations
+Khalid Al-Mansour,خالد المنصور,298765432109,K2345678,Kuwaiti,Local Blacklist,2024-04-15,EXACT MATCH - Former staff member under investigation
+Global Trading LLC,غلوبال تريدنج ذ.م.م,N/A,N/A,UAE,Central Bank Alert,2024-05-20,EXACT MATCH - Suspicious transactions
+Hassan Ibrahim,حسن إبراهيم,287654321099,K8765432,Kuwaiti,FATF Grey List,2024-06-25,EXACT MATCH - Staff member flagged
+Legal Advisors Group,مجموعة المستشارين القانونيين,N/A,N/A,Kuwaiti,Local Blacklist,2024-07-30,EXACT MATCH - Regulatory compliance issues
+Mohammed Rashid,محمد راشد,287654321098,K1234567,Kuwaiti,UN Sanctions List,2024-08-15,PARTIAL MATCH - Similar to Mohammed Al-Rashid
+Tech Solutions Int,تك سوليوشنز,N/A,N/A,International,EU Sanctions,2024-09-20,PARTIAL MATCH - Similar to Tech Solutions International
+Sarah Investments,شركة سارة,N/A,N/A,Kuwaiti,OFAC List,2024-10-10,PARTIAL MATCH - Similar to Sarah Investment Corp
+Khalid Mansour,خالد منصور,N/A,N/A,Kuwaiti,Local Blacklist,2024-11-15,PARTIAL MATCH - Similar to Khalid Al-Mansour
+Ahmed Hassan Al-Mutairi,أحمد حسن المطيري,287654321002,K1234568,Kuwaiti,UN Sanctions List,2024-12-01,NO MATCH - Different person
+Fatima Mohammed Al-Sabah,فاطمة محمد الصباح,298765432110,K2345679,Kuwaiti,OFAC List,2025-01-05,NO MATCH - Different person
+Youssef Ali Al-Kuwari,يوسف علي الكواري,276543210987,K3456789,Kuwaiti,Local Blacklist,2025-02-10,NO MATCH - Different person
+Noor Abdullah Al-Thani,نور عبدالله الثاني,265432109876,K4567890,Kuwaiti,Central Bank Alert,2025-03-15,NO MATCH - Different person

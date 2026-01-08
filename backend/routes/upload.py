@@ -10,10 +10,12 @@ from datetime import datetime
 
 from database.connection import get_db
 from models.blacklist import BlacklistEntry
+from models.database import FlaggedItem, KamcoClient, KamcoVendor, KamcoStaff, KamcoOther
 from utils.excel_parser import ExcelParser, ExcelParserError, validate_blacklist_excel
 from utils.logbook import log_action
 from utils.auth import get_current_active_user
 from utils.email_service import get_email_service
+from utils.fuzzy_matcher_enhanced import FuzzyMatcherEnhanced
 
 router = APIRouter()
 
@@ -25,46 +27,54 @@ async def upload_blacklist(
     current_user = Depends(get_current_active_user)
 ):
     """
-    Upload blacklist/sanctions list Excel file
+    Upload blacklist/sanctions list file
     
-    **Phase 4 - Task 19: Upload Endpoint**
-    
-    Accepts:
+    **Supports Multiple Formats:**
     - Excel files (.xlsx, .xls)
-    - Required column: name_arabic
-    - Optional columns: name_english, civil_id, decree_number, etc.
+    - CSV files (.csv)
+    - XML files (.xml)
+    - JSON files (.json)
+    
+    **Required fields:**
+    - At least one of: name_english OR name_arabic
+    
+    **Optional fields:**
+    - civil_id, passport_number, nationality, source, date_added, notes
     
     Returns:
-    - Upload summary with record counts and batch ID
+    - Upload summary with record counts and auto-screening results
     """
     
     # Validate file type
-    if not file.filename.endswith(('.xlsx', '.xls')):
+    supported_extensions = ('.xlsx', '.xls', '.csv', '.xml', '.json')
+    if not file.filename.lower().endswith(supported_extensions):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file type. Only Excel files (.xlsx, .xls) are accepted."
+            detail=f"Invalid file type. Supported formats: {', '.join(supported_extensions)}"
         )
     
     try:
         # Read file contents
         file_contents = await file.read()
         
-        # Validate file structure first
-        validation = validate_blacklist_excel(file_bytes=file_contents)
-        if not validation['valid']:
+        # Parse using multi-format parser
+        from utils.multi_format_parser import parse_blacklist_file
+        
+        try:
+            result = parse_blacklist_file(file_contents, file.filename)
+            records = result['data']
+            summary = result['summary']
+            errors = result['errors']
+        except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid Excel structure: {validation['error']}"
+                detail=f"Failed to parse file: {str(e)}"
             )
-        
-        # Parse blacklist data
-        parser = ExcelParser(file_bytes=file_contents)
-        records, summary = parser.parse_blacklist()
         
         if not records:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No valid records found in Excel file"
+                detail="No valid records found in file"
             )
         
         # Store records in database
@@ -123,6 +133,114 @@ async def upload_blacklist(
             # Don't fail the upload if email fails
             print(f"Warning: Could not send upload notification email: {str(e)}")
         
+        # AUTO-SCREEN: Run screening automatically if Kamco data exists
+        screening_results = None
+        try:
+            # Check if any Kamco data exists
+            kamco_count = (
+                db.query(KamcoClient).count() +
+                db.query(KamcoVendor).count() +
+                db.query(KamcoStaff).count() +
+                db.query(KamcoOther).count()
+            )
+            
+            if kamco_count > 0:
+                print(f"🔍 Auto-screening: Found {kamco_count} Kamco entities, running screening...")
+                
+                # Initialize matcher
+                matcher = FuzzyMatcherEnhanced()
+                
+                # Get all blacklist entries
+                blacklist_entries = db.query(BlacklistEntry).all()
+                
+                # Screen all entity types
+                matches_found = 0
+                for entity_type, model in [
+                    ("clients", KamcoClient),
+                    ("vendors", KamcoVendor),
+                    ("staff", KamcoStaff),
+                    ("others", KamcoOther)
+                ]:
+                    entities = db.query(model).all()
+                    
+                    for entity in entities:
+                        for blacklist_entry in blacklist_entries:
+                            # Try matching with both English and Arabic names
+                            best_match = {'match_score': 0}
+                            best_blacklist_name = ""
+                            
+                            # Check English name
+                            if blacklist_entry.name_english:
+                                english_match = matcher.match_names(entity.name, blacklist_entry.name_english, use_multiple_algorithms=True)
+                                if english_match['match_score'] > best_match['match_score']:
+                                    best_match = english_match
+                                    best_blacklist_name = blacklist_entry.name_english
+                            
+                            # Check Arabic name
+                            if blacklist_entry.name_arabic:
+                                arabic_match = matcher.match_names(entity.name, blacklist_entry.name_arabic, use_multiple_algorithms=True)
+                                if arabic_match['match_score'] > best_match['match_score']:
+                                    best_match = arabic_match
+                                    best_blacklist_name = blacklist_entry.name_arabic
+                            
+                            # Create flagged item if best match score >= 70
+                            if best_match['match_score'] >= 70:
+                                # Check if already flagged
+                                existing = db.query(FlaggedItem).filter(
+                                    FlaggedItem.kamco_name == entity.name,
+                                    FlaggedItem.kamco_type == entity_type,
+                                    FlaggedItem.blacklist_name == best_blacklist_name
+                                ).first()
+                                
+                                if not existing:
+                                    # Determine severity based on match score
+                                    if best_match['match_score'] >= 90:
+                                        severity = 'high'
+                                    elif best_match['match_score'] >= 80:
+                                        severity = 'medium'
+                                    else:
+                                        severity = 'low'
+                                    
+                                    flagged_item = FlaggedItem(
+                                        kamco_name=entity.name,
+                                        kamco_type=entity_type,
+                                        kamco_id=entity.id,
+                                        blacklist_name=best_blacklist_name,
+                                        blacklist_source=blacklist_entry.source or "Uploaded",
+                                        match_score=best_match['match_score'],
+                                        severity=severity,
+                                        status='pending',
+                                        flagged_by_id=current_user.id,
+                                        flag_reason=f"Auto-flagged: Name match {best_match['match_score']:.1f}%",
+                                        flag_reason_category='match_confirmed'
+                                    )
+                                    db.add(flagged_item)
+                                    matches_found += 1
+                
+                db.commit()
+                screening_results = {
+                    "kamco_entities": kamco_count,
+                    "matches_found": matches_found,
+                    "auto_screened": True
+                }
+                print(f"✅ Auto-screening complete: {matches_found} matches found and flagged")
+            else:
+                print("ℹ️  No Kamco data found - skipping auto-screening")
+                screening_results = {
+                    "kamco_entities": 0,
+                    "matches_found": 0,
+                    "auto_screened": False,
+                    "message": "No Kamco data to screen against. Upload Kamco file first."
+                }
+                
+        except Exception as e:
+            print(f"Warning: Auto-screening failed: {str(e)}")
+            # Don't fail the upload if screening fails
+            screening_results = {
+                "error": str(e),
+                "auto_screened": False
+            }
+        
         return {
             "success": True,
             "message": f"Successfully uploaded {stored_count} blacklist entries",
@@ -134,7 +252,8 @@ async def upload_blacklist(
                 "stored_count": stored_count,
                 "error_count": len(errors),
                 "errors": errors[:10] if errors else [],  # Show first 10 errors
-                "upload_time": datetime.now().isoformat()
+                "upload_time": datetime.now().isoformat(),
+                "screening": screening_results  # Include screening results
             }
         }
         

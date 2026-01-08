@@ -9,6 +9,7 @@ import CheckerReviewPage from './pages/review/CheckerReviewPage';
 import FinalizerReviewPage from './pages/review/FinalizerReviewPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import AuditLogsPage from './pages/audit/AuditLogsPage';
+import SettingsPage from './pages/SettingsPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import RealTimeProvider from './components/providers/RealTimeProvider';
 import { useAuthStore } from './stores/authStore';
@@ -101,6 +102,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute requireRole={['checker', 'finalizer']}>
                 <AuditLogsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />

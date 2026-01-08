@@ -22,13 +22,29 @@ def log_action(
     Args:
         db: Database session
         user_id: ID of user performing action
-        action: Action type (e.g., "BLACKLIST_UPLOADED")
+        action: Action type (e.g., "BLACKLIST_UPLOADED", "SCAN", "FLAG", etc.)
         details: Human-readable description
         metadata: Optional additional data as dictionary
     """
     try:
+        # Map action names to valid action_type values
+        action_type_map = {
+            "BLACKLIST_UPLOADED": "upload",
+            "FILE_UPLOADED": "upload",
+            "SCAN": "scan",
+            "FLAG": "flag",
+            "CLEAR": "clear",
+            "APPROVE": "approve",
+            "REJECT": "reject",
+            "OVERRIDE": "override",
+            "RECHECK": "recheck",
+            "ESCALATE": "escalate",
+        }
+        
+        # Get the action_type or default to the action itself (lowercased)
+        action_type = action_type_map.get(action, action.lower())
+        
         # Create a simple log entry using Logbook model
-        # Note: This uses the existing Logbook model fields
         logbook_entry = Logbook(
             kamco_name="SYSTEM",
             kamco_type="system_action",
@@ -36,7 +52,9 @@ def log_action(
             blacklist_name=action,
             blacklist_source="system",
             match_score=0.0,
+            action_type=action_type,  # NOW REQUIRED!
             reviewed_by=str(user_id),
+            reviewed_by_id=user_id,  # Add the FK relationship
             decision="logged",
             notes=f"{details} | Metadata: {json.dumps(metadata) if metadata else 'None'}"
         )

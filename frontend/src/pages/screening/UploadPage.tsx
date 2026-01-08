@@ -37,7 +37,9 @@ const UploadPage: React.FC = () => {
         throw new Error('Blacklist upload failed');
       }
 
-      toast.success(`Blacklist uploaded: ${blacklistResponse.data.summary.valid_records} records processed`);
+      // Backend returns: { success, message, data: { valid_records, stored_count, ... } }
+      const uploadData = blacklistResponse.data.data;
+      toast.success(`Blacklist uploaded: ${uploadData.stored_count} of ${uploadData.valid_records} records processed`);
 
       // Upload Kamco file if provided (OPTIONAL)
       if (kamcoFile) {

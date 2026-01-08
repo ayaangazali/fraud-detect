@@ -444,7 +444,7 @@ async def get_screening_queue(
             # Get flagged_by user info if available
             flagged_by_name = None
             if item.flagged_by_id:
-                from models.database import User
+                from models.auth import User
                 flagged_by_user = db.query(User).filter(User.id == item.flagged_by_id).first()
                 if flagged_by_user:
                     flagged_by_name = flagged_by_user.username

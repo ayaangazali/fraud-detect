@@ -75,4 +75,16 @@ class RefreshToken(Base):
     def is_valid(self):
         """Check if token is still valid (not expired and not revoked)"""
         from datetime import datetime, timezone
-        return not self.is_revoked and self.expires_at > datetime.now(timezone.utc)
+        
+        if self.is_revoked:
+            return False
+        
+        # Make both datetimes timezone-aware for comparison
+        now = datetime.now(timezone.utc)
+        expires_at = self.expires_at
+        
+        # If expires_at is naive, make it timezone-aware (assume UTC)
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        
+        return expires_at > now

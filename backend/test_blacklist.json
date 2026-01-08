@@ -1,0 +1,32 @@
+{
+  "blacklist": [
+    {
+      "name_english": "John Smith",
+      "name_arabic": "جون سميث",
+      "civil_id": "123456789012",
+      "passport_number": "P123456",
+      "nationality": "Kuwait",
+      "source": "UN Sanctions List",
+      "date_added": "2024-01-15",
+      "notes": "High-risk individual"
+    },
+    {
+      "name_english": "Mohammed Al-Rashid",
+      "name_arabic": "محمد الرشيد",
+      "civil_id": "298765432109",
+      "nationality": "Kuwait",
+      "source": "Test Source",
+      "date_added": "2024-02-01",
+      "notes": "Test match for auto-screening"
+    },
+    {
+      "name_english": "Sarah Investment Corp",
+      "name_arabic": "شركة سارة للاستثمار",
+      "civil_id": "387654321098",
+      "nationality": "Kuwait",
+      "source": "Test Source",
+      "date_added": "2024-02-01",
+      "notes": "Test company match"
+    }
+  ]
+}
