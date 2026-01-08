@@ -249,10 +249,9 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
         action=f"User logged in: {user.username}",
         user_id=user.id,
         username=user.username,
-        user_role=user.role.value,
         ip_address=ip_address,
         success=True,
-        metadata={"email": user.email}
+        metadata={"email": user.email, "role": user.role.value}
     )
     
     return TokenResponse(
@@ -351,8 +350,8 @@ async def logout(
         action=f"User logged out: {current_user.username}",
         user_id=current_user.id,
         username=current_user.username,
-        user_role=current_user.role.value,
-        success=True
+        success=True,
+        metadata={"role": current_user.role.value}
     )
     
     return MessageResponse(
@@ -379,3 +378,54 @@ async def get_current_user_info(
         created_at=current_user.created_at.isoformat() if current_user.created_at else "",
         last_login=current_user.last_login.isoformat() if current_user.last_login else None
     )
+
+
+@router.get("/users")
+async def list_users(
+    role: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    List all users (requires authentication)
+    
+    - **role**: Filter by role (screener, checker, finalizer)
+    - **is_active**: Filter by active status
+    - **limit**: Maximum number of users to return
+    """
+    try:
+        query = db.query(User)
+        
+        if role:
+            query = query.filter(User.role == role)
+        
+        if is_active is not None:
+            query = query.filter(User.is_active == is_active)
+        
+        users = query.order_by(User.created_at.desc()).limit(limit).all()
+        
+        user_list = []
+        for user in users:
+            user_list.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'role': user.role.value,
+                'is_active': user.is_active,
+                'created_at': user.created_at.isoformat() if user.created_at else None,
+                'last_login': user.last_login.isoformat() if user.last_login else None
+            })
+        
+        return {
+            'success': True,
+            'users': user_list,
+            'count': len(user_list)
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to list users: {str(e)}"
+        )

@@ -596,3 +596,222 @@ async def override_flag(
         "success": True,
         "message": "Flag overridden. Item marked as cleared in logbook."
     }
+
+
+@router.get("/cases")
+async def get_cases_by_role(
+    role: Optional[str] = None,
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get cases filtered by role, status, priority
+    
+    - **role**: Filter by assigned role (checker, finalizer)
+    - **status**: Filter by status (pending, in_review, approved, rejected, escalated)
+    - **priority**: Filter by priority (low, medium, high, critical)
+    - **limit**: Maximum number of cases to return
+    """
+    try:
+        query = db.query(Case)
+        
+        if status:
+            # Map common status names to Case model status
+            status_mapping = {
+                'pending': CaseStatus.OPEN,
+                'in_review': CaseStatus.IN_REVIEW,
+                'flagged': CaseStatus.FLAGGED,
+                'checker_review': CaseStatus.CHECKER_REVIEW,
+                'approved': CaseStatus.CLEARED,
+                'rejected': CaseStatus.REJECTED,
+                'escalated': CaseStatus.ESCALATED
+            }
+            mapped_status = status_mapping.get(status, status)
+            query = query.filter(Case.status == mapped_status)
+        
+        if priority:
+            query = query.filter(Case.priority == priority)
+        
+        cases = query.order_by(Case.created_at.desc()).limit(limit).all()
+        
+        results = []
+        for case in cases:
+            results.append({
+                'id': case.id,
+                'case_number': case.case_number,
+                'status': case.status.value if hasattr(case.status, 'value') else str(case.status),
+                'priority': case.priority.value if hasattr(case.priority, 'value') else str(case.priority),
+                'title': case.title,
+                'description': case.description,
+                'assigned_to_id': case.assigned_to_id,
+                'created_by_id': case.created_by_id,
+                'created_at': case.created_at.isoformat() if case.created_at else None,
+                'updated_at': case.updated_at.isoformat() if case.updated_at else None
+            })
+        
+        return {
+            'success': True,
+            'cases': results,
+            'count': len(results)
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get cases: {str(e)}"
+        )
+
+
+@router.get("/checker/queue")
+async def get_checker_queue(
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_checker)
+):
+    """
+    Get cases assigned to checker role for review
+    
+    Returns flagged items that need checker review
+    """
+    try:
+        # Get flagged items that are in checker_review or flagged status
+        flagged_items = db.query(FlaggedItem).filter(
+            FlaggedItem.status.in_(['flagged', 'pending'])
+        )
+        
+        if priority:
+            flagged_items = flagged_items.filter(FlaggedItem.severity == priority)
+        
+        flagged_items = flagged_items.order_by(
+            FlaggedItem.severity.desc(),
+            FlaggedItem.flagged_at.desc()
+        ).limit(limit).all()
+        
+        queue = []
+        for item in flagged_items:
+            # Get user info
+            flagged_by_name = None
+            if item.flagged_by_id:
+                flagged_by_user = db.query(User).filter(User.id == item.flagged_by_id).first()
+                if flagged_by_user:
+                    flagged_by_name = flagged_by_user.username
+            
+            queue.append({
+                'id': item.id,
+                'kamco_name': item.kamco_name,
+                'kamco_type': item.kamco_type,
+                'kamco_id': item.kamco_id,
+                'blacklist_name': item.blacklist_name,
+                'blacklist_source': item.blacklist_source,
+                'match_score': item.match_score,
+                'match_type': 'fuzzy',
+                'severity': item.severity,
+                'status': item.status,
+                'flagged_by': flagged_by_name or 'System',
+                'flagged_at': item.flagged_at.isoformat() if item.flagged_at else None,
+                'flag_reason': item.flag_reason
+            })
+        
+        return {
+            'success': True,
+            'data': queue,
+            'count': len(queue),
+            'role': 'checker'
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get checker queue: {str(e)}"
+        )
+
+
+@router.get("/finalizer/queue")
+async def get_finalizer_queue(
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get cases assigned to finalizer role for final review
+    
+    Returns high-severity flagged items or escalated cases
+    """
+    try:
+        # Finalizer handles high/critical severity items and escalated cases
+        flagged_items = db.query(FlaggedItem).filter(
+            (FlaggedItem.severity.in_(['high', 'critical'])) |
+            (FlaggedItem.status == 'escalated')
+        )
+        
+        if status:
+            flagged_items = flagged_items.filter(FlaggedItem.status == status)
+        
+        if priority:
+            flagged_items = flagged_items.filter(FlaggedItem.severity == priority)
+        
+        flagged_items = flagged_items.order_by(
+            FlaggedItem.severity.desc(),
+            FlaggedItem.flagged_at.desc()
+        ).limit(limit).all()
+        
+        queue = []
+        for item in flagged_items:
+            # Get user info
+            flagged_by_name = None
+            checker_name = None
+            
+            if item.flagged_by_id:
+                flagged_by_user = db.query(User).filter(User.id == item.flagged_by_id).first()
+                if flagged_by_user:
+                    flagged_by_name = flagged_by_user.username
+            
+            if item.checker_id:
+                checker_user = db.query(User).filter(User.id == item.checker_id).first()
+                if checker_user:
+                    checker_name = checker_user.username
+            
+            queue.append({
+                'id': item.id,
+                'kamco_name': item.kamco_name,
+                'kamco_type': item.kamco_type,
+                'kamco_id': item.kamco_id,
+                'blacklist_name': item.blacklist_name,
+                'blacklist_source': item.blacklist_source,
+                'match_score': item.match_score,
+                'match_type': 'fuzzy',
+                'severity': item.severity,
+                'status': item.status,
+                'flagged_by': flagged_by_name or 'System',
+                'escalated': item.status == 'escalated',
+                'flagged_at': item.flagged_at.isoformat() if item.flagged_at else None,
+                'reviewed_by': checker_name,
+                'reviewed_at': item.checker_reviewed_at.isoformat() if item.checker_reviewed_at else None,
+                'flag_reason': item.flag_reason
+            })
+        
+        return {
+            'success': True,
+            'data': queue,
+            'count': len(queue),
+            'role': 'finalizer'
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get finalizer queue: {str(e)}"
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get finalizer queue: {str(e)}"
+        )

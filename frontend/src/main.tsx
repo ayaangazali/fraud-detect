@@ -1,10 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AppRouter from './AppRouter';
+import App from './App';
+import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
+
+console.log('🚀 Starting application...');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppRouter />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>
 );
+
+console.log('✅ Application mounted successfully');

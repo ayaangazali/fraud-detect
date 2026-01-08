@@ -39,14 +39,22 @@ def require_admin(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.post("/logs", response_model=AuditLogResponse)
+@router.get("/logs", response_model=AuditLogResponse)
 async def query_audit_logs(
-    request: AuditQueryRequest,
+    date_from: Optional[datetime] = Query(None, description="Start date"),
+    date_to: Optional[datetime] = Query(None, description="End date"),
+    event_types: Optional[List[str]] = Query(None, description="Filter by event types"),
+    severity_levels: Optional[List[str]] = Query(None, description="Filter by severity"),
+    user_id: Optional[int] = Query(None, description="Filter by user ID"),
+    resource_type: Optional[str] = Query(None, description="Filter by resource type"),
+    search_query: Optional[str] = Query(None, description="Search query"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(50, ge=1, le=100, description="Page size"),
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Query audit logs with filtering
+    Query audit logs with filtering (GET endpoint for easy frontend access)
     
     - **date_from**: Start date (optional)
     - **date_to**: End date (optional)
@@ -59,6 +67,21 @@ async def query_audit_logs(
     - **page_size**: Results per page (default 50)
     """
     try:
+        from models.audit_schema import AuditQueryRequest
+        
+        # Build request object from query params
+        request = AuditQueryRequest(
+            date_from=date_from,
+            date_to=date_to,
+            event_types=event_types,
+            severity_levels=severity_levels,
+            user_id=user_id,
+            resource_type=resource_type,
+            search_query=search_query,
+            page=page,
+            page_size=page_size
+        )
+        
         audit_service = get_audit_service(db)
         result = audit_service.query_audit_logs(request)
         
@@ -156,6 +179,84 @@ async def get_security_events(
         
     except Exception as e:
         logger.error(f"Error retrieving security events: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Alias endpoint for tests
+@router.get("/security-events", response_model=SecurityEventSummary)
+async def get_security_events_alias(
+    date_from: Optional[datetime] = Query(None, description="Start date"),
+    date_to: Optional[datetime] = Query(None, description="End date"),
+    limit: int = Query(100, ge=1, le=1000, description="Max events to return"),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Alias for /security endpoint"""
+    return await get_security_events(date_from, date_to, limit, current_user, db)
+
+
+# Alias endpoint for user activity without user_id (returns all activity)
+@router.get("/user-activity")
+async def get_all_user_activity(
+    date_from: Optional[datetime] = Query(None, description="Start date"),
+    date_to: Optional[datetime] = Query(None, description="End date"),
+    limit: int = Query(100, ge=1, le=1000, description="Max activities to return"),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Get recent user activity across all users
+    """
+    try:
+        from sqlalchemy import func
+        from models.database import AuditLog
+        
+        if not date_from:
+            date_from = datetime.utcnow() - timedelta(days=7)
+        if not date_to:
+            date_to = datetime.utcnow()
+        
+        # Get recent activities grouped by user
+        activities_query = db.query(
+            AuditLog.username,
+            AuditLog.user_role,
+            func.count(AuditLog.id).label('total_actions'),
+            func.max(AuditLog.timestamp).label('last_activity')
+        ).filter(
+            AuditLog.timestamp >= date_from,
+            AuditLog.timestamp <= date_to,
+            AuditLog.username.isnot(None)
+        ).group_by(
+            AuditLog.username,
+            AuditLog.user_role
+        ).order_by(
+            func.max(AuditLog.timestamp).desc()
+        ).limit(limit).all()
+        
+        activities = [
+            {
+                "username": row.username,
+                "role": row.user_role,
+                "total_actions": row.total_actions,
+                "last_activity": row.last_activity.isoformat() if row.last_activity else None
+            }
+            for row in activities_query
+        ]
+        
+        logger.info(
+            f"Admin {current_user.username} retrieved user activity summary"
+        )
+        
+        return {
+            "success": True,
+            "date_from": date_from.isoformat(),
+            "date_to": date_to.isoformat(),
+            "activities": activities,
+            "count": len(activities)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error retrieving user activity: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

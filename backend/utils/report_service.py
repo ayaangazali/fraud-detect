@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
 import logging
 
-from models.database import InReviewQueue, FlaggedItem, Logbook, BlacklistEntry
+from models.database import InReviewQueue, FlaggedItem, Logbook
+from models.blacklist import BlacklistEntry
 from models.case import Case, CaseStatus, CasePriority
 from models.auth import User
 from models.report_schema import (

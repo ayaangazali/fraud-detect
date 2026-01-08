@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from database.connection import get_db
 from models.auth import User
+from models.database import FlaggedItem
 from models.report_schema import (
     ReportGenerationRequest,
     ReportMetadataResponse,
@@ -362,3 +363,210 @@ async def preview_report_data(
     except Exception as e:
         logger.error(f"Error previewing report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to preview report: {str(e)}")
+
+
+# Quick-access report endpoints for frontend
+@router.get("/compliance")
+async def get_compliance_report(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get compliance audit report data (last 30 days)
+    """
+    try:
+        from datetime import timedelta
+        from models.report_schema import ReportFilter
+        
+        report_service = get_report_service(db)
+        filters = ReportFilter(
+            date_from=datetime.now() - timedelta(days=30),
+            date_to=datetime.now()
+        )
+        
+        data = report_service.generate_compliance_audit_report(filters)
+        
+        return {
+            "success": True,
+            "report_type": "compliance_audit",
+            "period": "Last 30 days",
+            "data": data.dict()
+        }
+    except Exception as e:
+        logger.error(f"Error getting compliance report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get compliance report: {str(e)}")
+
+
+@router.get("/screening-summary")
+async def get_screening_summary_report(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get screening summary report data (last 30 days)
+    """
+    try:
+        from datetime import timedelta
+        from models.report_schema import ReportFilter
+        
+        report_service = get_report_service(db)
+        filters = ReportFilter(
+            date_from=datetime.now() - timedelta(days=30),
+            date_to=datetime.now()
+        )
+        
+        data = report_service.generate_screening_summary(filters)
+        
+        return {
+            "success": True,
+            "report_type": "screening_summary",
+            "period": "Last 30 days",
+            "data": data.dict()
+        }
+    except Exception as e:
+        logger.error(f"Error getting screening summary: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get screening summary: {str(e)}")
+
+
+@router.get("/risk-assessment")
+async def get_risk_assessment_report(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get risk assessment report data (last 30 days)
+    """
+    try:
+        from datetime import timedelta
+        from sqlalchemy import func
+        
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        
+        # Count flagged items by severity
+        high_risk = db.query(FlaggedItem).filter(
+            FlaggedItem.severity.in_(['high', 'critical']),
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        medium_risk = db.query(FlaggedItem).filter(
+            FlaggedItem.severity == 'medium',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        low_risk = db.query(FlaggedItem).filter(
+            FlaggedItem.severity == 'low',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        # Count by status
+        pending = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'pending',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        approved = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'approved',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        rejected = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'rejected',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        return {
+            "success": True,
+            "report_type": "risk_assessment",
+            "period": "Last 30 days",
+            "data": {
+                "high_risk_count": high_risk,
+                "medium_risk_count": medium_risk,
+                "low_risk_count": low_risk,
+                "total_flagged": high_risk + medium_risk + low_risk,
+                "pending_review": pending,
+                "approved": approved,
+                "rejected": rejected
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting risk assessment: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get risk assessment: {str(e)}")
+
+
+@router.get("/dashboard-metrics")
+async def get_dashboard_metrics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get dashboard metrics for the dashboard page
+    Returns summary statistics and key metrics
+    """
+    try:
+        from datetime import timedelta
+        from sqlalchemy import func
+        
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        
+        # Count all flagged items in last 30 days
+        total_flagged = db.query(FlaggedItem).filter(
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        # Count by severity
+        high_risk = db.query(FlaggedItem).filter(
+            FlaggedItem.severity.in_(['high', 'critical']),
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        medium_risk = db.query(FlaggedItem).filter(
+            FlaggedItem.severity == 'medium',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        low_risk = db.query(FlaggedItem).filter(
+            FlaggedItem.severity == 'low',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        # Count by status
+        pending = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'pending',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        approved = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'approved',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        rejected = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'rejected',
+            FlaggedItem.flagged_at >= thirty_days_ago
+        ).count()
+        
+        # Calculate match rate (if we had screening count, would be matches/total * 100)
+        match_rate = round((total_flagged / max(total_flagged, 1)) * 100, 2) if total_flagged > 0 else 0
+        
+        metrics = {
+            "total_screenings": total_flagged,  # Using flagged as proxy
+            "total_matches": total_flagged,
+            "total_flagged": total_flagged,
+            "match_rate": match_rate,
+            "high_risk_count": high_risk,
+            "medium_risk_count": medium_risk,
+            "low_risk_count": low_risk,
+            "pending_review": pending,
+            "approved": approved,
+            "rejected": rejected,
+            "period": "Last 30 days",
+            "last_updated": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "data": metrics
+        }
+    except Exception as e:
+        logger.error(f"Error getting dashboard metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get dashboard metrics: {str(e)}")

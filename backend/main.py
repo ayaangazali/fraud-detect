@@ -50,6 +50,23 @@ async def root():
 async def health_check():
     return {"status": "ok"}
 
+@app.get("/api")
+async def api_root():
+    """API root endpoint"""
+    return {
+        "status": "ok",
+        "message": "Kamco Compliance API",
+        "version": "1.0.0",
+        "endpoints": {
+            "auth": "/api/auth",
+            "upload": "/api/upload",
+            "screening": "/api/screening",
+            "review": "/api/review",
+            "reports": "/api/reports",
+            "audit": "/api/audit"
+        }
+    }
+
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(upload.router, prefix="/api/upload", tags=["Upload"])
@@ -63,4 +80,5 @@ app.include_router(audit.router, prefix="/api/audit", tags=["Audit Logs"])
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+1

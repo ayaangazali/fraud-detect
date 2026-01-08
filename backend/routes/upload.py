@@ -346,3 +346,75 @@ async def validate_blacklist_file(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Validation failed: {str(e)}"
         )
+
+
+@router.get("/history")
+async def get_upload_history(
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user)
+):
+    """
+    Get upload history
+    
+    Returns recent upload operations with statistics
+    """
+    try:
+        from models.database import Logbook, User
+        from sqlalchemy import desc, or_
+        
+        # Get recent upload-related log entries (check multiple possible action types)
+        uploads = db.query(Logbook).filter(
+            or_(
+                Logbook.action_type == 'upload',
+                Logbook.action_type == 'file_upload',
+                Logbook.action_type.like('%upload%')
+            )
+        ).order_by(
+            desc(Logbook.created_at)
+        ).limit(limit).all()
+        
+        history = []
+        for upload in uploads:
+            # Get user info
+            user_name = upload.reviewed_by or 'System'
+            if upload.reviewed_by_id:
+                user = db.query(User).filter(User.id == upload.reviewed_by_id).first()
+                if user:
+                    user_name = user.username
+            
+            history.append({
+                'id': upload.id,
+                'uploaded_by': user_name,
+                'action': upload.action_type,
+                'details': upload.notes or 'File upload',
+                'filename': 'blacklist_file.xlsx',  # Stored in notes if available
+                'timestamp': upload.created_at.isoformat() if upload.created_at else None,
+                'status': upload.decision or 'completed'
+            })
+        
+        # Get blacklist entry statistics
+        total_entries = db.query(BlacklistEntry).count()
+        
+        # If no upload logs, return empty history but success
+        return {
+            'success': True,
+            'history': history,
+            'total_blacklist_entries': total_entries,
+            'count': len(history),
+            'message': 'No upload history found' if len(history) == 0 else None
+        }
+        
+    except Exception as e:
+        # Log the error but return success with empty data rather than 500
+        import logging
+        logging.error(f"Error fetching upload history: {str(e)}")
+        
+        # Return empty history rather than failing
+        return {
+            'success': True,
+            'history': [],
+            'total_blacklist_entries': 0,
+            'count': 0,
+            'message': 'Upload history not available'
+        }

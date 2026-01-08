@@ -419,3 +419,133 @@ async def get_screening_stats(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get stats: {str(e)}"
         )
+
+
+@router.get("/queue")
+async def get_screening_queue(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user)
+):
+    """
+    Get screening queue (flagged items pending review)
+    
+    Returns all flagged items that haven't been reviewed yet
+    """
+    try:
+        # Get flagged items that are pending
+        flagged_items = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'pending'
+        ).order_by(
+            FlaggedItem.flagged_at.desc()
+        ).all()
+        
+        queue = []
+        for item in flagged_items:
+            # Get flagged_by user info if available
+            flagged_by_name = None
+            if item.flagged_by_id:
+                from models.database import User
+                flagged_by_user = db.query(User).filter(User.id == item.flagged_by_id).first()
+                if flagged_by_user:
+                    flagged_by_name = flagged_by_user.username
+            
+            queue.append({
+                'id': item.id,
+                'kamco_name': item.kamco_name,
+                'kamco_type': item.kamco_type,
+                'kamco_id': item.kamco_id,
+                'blacklist_name': item.blacklist_name,
+                'blacklist_source': item.blacklist_source,
+                'match_score': item.match_score,
+                'match_type': 'fuzzy',  # Default, actual match type not stored in model
+                'severity': item.severity,
+                'status': item.status,
+                'flagged_by': flagged_by_name or 'System',
+                'flagged_at': item.flagged_at.isoformat() if item.flagged_at else None,
+                'flag_reason': item.flag_reason
+            })
+        
+        return {
+            'success': True,
+            'queue': queue,
+            'count': len(queue)
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get screening queue: {str(e)}"
+        )
+
+
+@router.get("/results")
+async def get_screening_results(
+    status_filter: Optional[str] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user)
+):
+    """
+    Get screening results (all flagged items)
+    
+    - **status_filter**: Filter by status (pending, approved, rejected)
+    - **limit**: Maximum number of results to return
+    """
+    try:
+        query = db.query(FlaggedItem)
+        
+        if status_filter:
+            query = query.filter(FlaggedItem.status == status_filter)
+        
+        flagged_items = query.order_by(
+            FlaggedItem.flagged_at.desc()
+        ).limit(limit).all()
+        
+        results = []
+        for item in flagged_items:
+            # Get user info
+            from models.database import User
+            flagged_by_name = None
+            reviewed_by_name = None
+            
+            if item.flagged_by_id:
+                flagged_by_user = db.query(User).filter(User.id == item.flagged_by_id).first()
+                if flagged_by_user:
+                    flagged_by_name = flagged_by_user.username
+            
+            if item.checker_id:
+                reviewed_by_user = db.query(User).filter(User.id == item.checker_id).first()
+                if reviewed_by_user:
+                    reviewed_by_name = reviewed_by_user.username
+            
+            results.append({
+                'id': item.id,
+                'kamco_name': item.kamco_name,
+                'kamco_type': item.kamco_type,
+                'kamco_id': item.kamco_id,
+                'blacklist_name': item.blacklist_name,
+                'blacklist_source': item.blacklist_source,
+                'match_score': item.match_score,
+                'match_type': 'fuzzy',
+                'severity': item.severity,
+                'status': item.status,
+                'flagged_by': flagged_by_name or 'System',
+                'flagged_at': item.flagged_at.isoformat() if item.flagged_at else None,
+                'reviewed_by': reviewed_by_name,
+                'reviewed_at': item.checker_reviewed_at.isoformat() if item.checker_reviewed_at else None,
+                'flag_reason': item.flag_reason
+            })
+        
+        return {
+            'success': True,
+            'results': results,
+            'count': len(results),
+            'filter': status_filter
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get screening results: {str(e)}"
+        )
+
