@@ -11,7 +11,7 @@ import os
 load_dotenv()
 
 # Import routes
-from routes import scan, review, auth, checker, finalizer, upload, screening, reports, audit
+from routes import scan, review, auth, checker, finalizer, upload, screening, reports, audit, review_manager
 
 # Import audit middleware
 from middleware.audit_middleware import setup_audit_middleware
@@ -72,6 +72,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(upload.router, prefix="/api/upload", tags=["Upload"])
 app.include_router(scan.router, prefix="/api/scan", tags=["Scan"])
 app.include_router(review.router, prefix="/api/review", tags=["Review"])
+app.include_router(review_manager.router, prefix="/api/reviews", tags=["Review Manager"])
 app.include_router(checker.router, prefix="/api/review/checker", tags=["Checker"])
 app.include_router(finalizer.router, prefix="/api/review/finalizer", tags=["Finalizer"])
 app.include_router(screening.router, prefix="/api/screening", tags=["Screening"])

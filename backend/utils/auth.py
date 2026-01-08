@@ -323,19 +323,19 @@ def verify_refresh_token(token: str, db: Session) -> Optional[User]:
         return None
 
 
-def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
+def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     """
-    Authenticate user by email and password
+    Authenticate user by username and password
     
     Args:
         db: Database session
-        email: User email
+        username: Username
         password: Plain text password
         
     Returns:
         User object if authentication successful, None otherwise
     """
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.username == username).first()
     
     if not user:
         return None

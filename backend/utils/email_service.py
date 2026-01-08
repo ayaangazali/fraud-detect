@@ -573,6 +573,270 @@ class EmailService:
         """
         
         return self.send_email(subject, html_content)
+    
+    def send_escalation_notification(
+        self,
+        item_id: int,
+        kamco_name: str,
+        blacklist_name: str,
+        match_score: float,
+        severity: str,
+        escalation_reason: str,
+        reviewed_by: str,
+        recipients: List[str]
+    ) -> bool:
+        """Send escalation notification to admins/finalizers"""
+        subject = f"🚨 Escalation Required: {kamco_name}"
+        
+        severity_colors = {
+            'critical': '#dc2626',
+            'high': '#ea580c',
+            'medium': '#ca8a04',
+            'low': '#65a30d'
+        }
+        severity_color = severity_colors.get(severity, '#6b7280')
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                {self._get_email_styles()}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🚨 Escalation Required</h1>
+                </div>
+                
+                <div class="content">
+                    <div class="alert" style="background-color: {severity_color};">
+                        <h2 style="margin: 0; color: white;">Item #{item_id} Escalated for Review</h2>
+                    </div>
+                    
+                    <h3>Match Details:</h3>
+                    <div class="details">
+                        <div class="detail-row">
+                            <span class="label">Kamco Entity:</span>
+                            <span class="value">{kamco_name}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Blacklist Match:</span>
+                            <span class="value">{blacklist_name}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Match Score:</span>
+                            <span class="value">{match_score:.1f}%</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Severity:</span>
+                            <span class="value" style="color: {severity_color}; font-weight: bold;">{severity.upper()}</span>
+                        </div>
+                    </div>
+                    
+                    <h3>Escalation Reason:</h3>
+                    <div class="details">
+                        <p style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 10px 0;">
+                            {escalation_reason}
+                        </p>
+                    </div>
+                    
+                    <div class="details">
+                        <div class="detail-row">
+                            <span class="label">Reviewed By:</span>
+                            <span class="value">{reviewed_by}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Escalated At:</span>
+                            <span class="value">{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</span>
+                        </div>
+                    </div>
+                    
+                    <p style="margin-top: 20px;">
+                        <strong>Action Required:</strong> This item requires senior review and approval.
+                        Please log into the system to review and make a final decision.
+                    </p>
+                </div>
+                
+                <div class="footer">
+                    <p>Kamco Compliance Screening System - Escalation Alert</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Send to all recipients
+        for recipient in recipients:
+            self.send_email(subject, html_content, recipient=recipient)
+        
+        return True
+    
+    def send_screening_report(
+        self,
+        recipients: List[str],
+        summary: Optional[Dict[str, Any]] = None,
+        individual_reports: Optional[List[Dict[str, Any]]] = None,
+        sent_by: str = "System"
+    ) -> bool:
+        """Send comprehensive screening report"""
+        subject = f"📊 Screening Report - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        
+        # Build summary section
+        summary_html = ""
+        if summary:
+            summary_data = summary.get('summary', {})
+            summary_html = f"""
+            <div class="alert" style="background-color: #2563eb;">
+                <h2 style="margin: 0; color: white;">Executive Summary</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{summary_data.get('total_flagged_items', 0)}</div>
+                    <div class="stat-label">Total Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{summary_data.get('total_approved', 0)}</div>
+                    <div class="stat-label">Approved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{summary_data.get('total_rejected', 0)}</div>
+                    <div class="stat-label">Rejected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{summary_data.get('total_pending', 0)}</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            
+            <h3>Status Breakdown:</h3>
+            <div class="details">
+                {self._format_breakdown(summary.get('breakdowns', {}).get('by_status', {}))}
+            </div>
+            
+            <h3>Severity Distribution:</h3>
+            <div class="details">
+                {self._format_breakdown(summary.get('breakdowns', {}).get('by_severity', {}))}
+            </div>
+            """
+        
+        # Build individual reports section
+        individual_html = ""
+        if individual_reports:
+            individual_html = "<h2>Flagged Items Details:</h2>"
+            for idx, report in enumerate(individual_reports[:10], 1):  # Limit to 10
+                match_details = report.get('match_details', {})
+                review_status = report.get('review_status', {})
+                
+                individual_html += f"""
+                <div class="details" style="margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+                    <h4 style="margin-top: 0;">Item #{report.get('item_id')} - {match_details.get('kamco_name')}</h4>
+                    <div class="detail-row">
+                        <span class="label">Blacklist Match:</span>
+                        <span class="value">{match_details.get('blacklist_name')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Match Score:</span>
+                        <span class="value">{match_details.get('match_score', 0):.1f}%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Severity:</span>
+                        <span class="value">{match_details.get('severity', 'N/A').upper()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Status:</span>
+                        <span class="value">{review_status.get('status', 'N/A').upper()}</span>
+                    </div>
+                    {f'<div class="detail-row"><span class="label">Review Notes:</span><span class="value">{review_status.get("checker_notes", "N/A")}</span></div>' if review_status.get('checker_notes') else ''}
+                </div>
+                """
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                {self._get_email_styles()}
+                .stats-grid {{
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 15px;
+                    margin: 20px 0;
+                }}
+                .stat-card {{
+                    background-color: #f3f4f6;
+                    padding: 20px;
+                    border-radius: 8px;
+                    text-align: center;
+                }}
+                .stat-number {{
+                    font-size: 36px;
+                    font-weight: bold;
+                    color: #1f2937;
+                    margin-bottom: 5px;
+                }}
+                .stat-label {{
+                    font-size: 14px;
+                    color: #6b7280;
+                    text-transform: uppercase;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📊 Compliance Screening Report</h1>
+                </div>
+                
+                <div class="content">
+                    {summary_html}
+                    
+                    <hr style="margin: 30px 0; border: none; border-top: 2px solid #e5e7eb;">
+                    
+                    {individual_html}
+                    
+                    <div class="details" style="margin-top: 30px;">
+                        <div class="detail-row">
+                            <span class="label">Report Generated By:</span>
+                            <span class="value">{sent_by}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Generated At:</span>
+                            <span class="value">{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <p>Kamco Compliance Screening System - Automated Report</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Send to all recipients
+        for recipient in recipients:
+            self.send_email(subject, html_content, recipient=recipient)
+        
+        return True
+    
+    def _format_breakdown(self, breakdown: Dict[str, int]) -> str:
+        """Format breakdown dictionary as HTML rows"""
+        if not breakdown:
+            return "<p>No data available</p>"
+        
+        html = ""
+        for key, value in breakdown.items():
+            html += f"""
+            <div class="detail-row">
+                <span class="label">{key.replace('_', ' ').title()}:</span>
+                <span class="value">{value}</span>
+            </div>
+            """
+        return html
 
 
 # Singleton instance

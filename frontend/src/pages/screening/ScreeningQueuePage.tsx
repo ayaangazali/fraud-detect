@@ -4,10 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, AlertTriangle, CheckCircle, Clock, Upload, FileX } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, AlertTriangle, CheckCircle, Clock, Upload, FileX, BarChart3, Mail, Eye, CheckSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import apiClient from '@/services/apiClient';
+import ReviewModal from '@/components/review/ReviewModal';
+import BulkReviewModal from '@/components/review/BulkReviewModal';
+import ItemDetailReport from '@/components/review/ItemDetailReport';
+import CumulativeReport from '@/components/review/CumulativeReport';
+import EmailReportModal from '@/components/review/EmailReportModal';
 
 interface QueueItem {
   id: number;
@@ -37,6 +43,16 @@ const ScreeningQueuePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  
+  // Modal states
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [bulkReviewModalOpen, setBulkReviewModalOpen] = useState(false);
+  const [detailReportModalOpen, setDetailReportModalOpen] = useState(false);
+  const [cumulativeReportModalOpen, setCumulativeReportModalOpen] = useState(false);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [selectedItemForReview, setSelectedItemForReview] = useState<QueueItem | null>(null);
+  const [selectedItemForDetail, setSelectedItemForDetail] = useState<number | null>(null);
 
   // Fetch screening queue data from backend
   useEffect(() => {
@@ -66,6 +82,43 @@ const ScreeningQueuePage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // Review handlers
+  const handleReviewClick = (item: QueueItem) => {
+    setSelectedItemForReview(item);
+    setReviewModalOpen(true);
+  };
+
+  const handleViewDetailReport = (itemId: number) => {
+    setSelectedItemForDetail(itemId);
+    setDetailReportModalOpen(true);
+  };
+
+  const handleReviewComplete = () => {
+    fetchScreeningQueue(); // Refresh the queue
+    setSelectedItems([]); // Clear selection
+  };
+
+  const handleToggleSelectItem = (itemId: number) => {
+    setSelectedItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectedItems.length === queueItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(queueItems.map(item => item.id));
+    }
+  };
+
+  const filteredItems = queueItems.filter(item =>
+    item.kamco_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.blacklist_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -99,10 +152,16 @@ const ScreeningQueuePage: React.FC = () => {
               Review and manage screening matches
             </p>
           </div>
-          <Button variant="outline">
-            <Filter className="mr-2 h-4 w-4" />
-            Filters
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setCumulativeReportModalOpen(true)}>
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Summary Report
+            </Button>
+            <Button variant="outline" onClick={() => setEmailModalOpen(true)}>
+              <Mail className="mr-2 h-4 w-4" />
+              Email Report
+            </Button>
+          </div>
         </div>
 
         {/* Search */}
@@ -120,15 +179,59 @@ const ScreeningQueuePage: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Bulk Actions */}
+        {selectedItems.length > 0 && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">
+                  {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setSelectedItems([])}
+                  >
+                    Clear Selection
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={() => setBulkReviewModalOpen(true)}
+                  >
+                    <CheckSquare className="mr-2 h-4 w-4" />
+                    Bulk Review
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Queue Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Matches Found ({queueItems.length})</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Matches Found ({filteredItems.length})</CardTitle>
+              {queueItems.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToggleSelectAll}
+                >
+                  {selectedItems.length === queueItems.length ? 'Deselect All' : 'Select All'}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Loading screening results...</p>
+              </div>
+            ) : filteredItems.length === 0 && searchQuery ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No matches found for "{searchQuery}"</p>
               </div>
             ) : queueItems.length === 0 ? (
               /* Empty State - No Data Uploaded Yet */
@@ -174,11 +277,20 @@ const ScreeningQueuePage: React.FC = () => {
             ) : (
               /* Results List */
               <div className="space-y-4">
-                {queueItems.map((item) => (
+                {filteredItems.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                   >
+                    {/* Checkbox */}
+                    <div className="flex items-center">
+                      <Checkbox
+                        checked={selectedItems.includes(item.id)}
+                        onCheckedChange={() => handleToggleSelectItem(item.id)}
+                      />
+                    </div>
+
+                    {/* Item Details */}
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
                         <p className="font-medium">{item.kamco_name}</p>
@@ -211,12 +323,26 @@ const ScreeningQueuePage: React.FC = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Status & Actions */}
                     <div className="flex items-center gap-3">
                       <Badge variant={getStatusColor(item.status)} className="gap-1">
                         {getStatusIcon(item.status)}
                         {item.status}
                       </Badge>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewDetailReport(item.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleReviewClick(item)}
+                        disabled={item.status !== 'pending'}
+                      >
                         Review
                       </Button>
                     </div>
@@ -227,6 +353,45 @@ const ScreeningQueuePage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Review Modals */}
+      {selectedItemForReview && (
+        <ReviewModal
+          isOpen={reviewModalOpen}
+          onClose={() => setReviewModalOpen(false)}
+          item={selectedItemForReview}
+          onReviewComplete={handleReviewComplete}
+        />
+      )}
+
+      <BulkReviewModal
+        isOpen={bulkReviewModalOpen}
+        onClose={() => setBulkReviewModalOpen(false)}
+        selectedItems={selectedItems}
+        onReviewComplete={handleReviewComplete}
+      />
+
+      {selectedItemForDetail && (
+        <ItemDetailReport
+          isOpen={detailReportModalOpen}
+          onClose={() => setDetailReportModalOpen(false)}
+          itemId={selectedItemForDetail}
+        />
+      )}
+
+      <CumulativeReport
+        isOpen={cumulativeReportModalOpen}
+        onClose={() => setCumulativeReportModalOpen(false)}
+        onEmailReport={() => {
+          setCumulativeReportModalOpen(false);
+          setEmailModalOpen(true);
+        }}
+      />
+
+      <EmailReportModal
+        isOpen={emailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
+      />
     </MainLayout>
   );
 };

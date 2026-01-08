@@ -56,7 +56,7 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    username: str
     password: str
 
 
@@ -175,9 +175,9 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
 @router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest, req: Request, db: Session = Depends(get_db)):
     """
-    Login with email and password
+    Login with username and password
     
-    - **email**: User email
+    - **username**: User username
     - **password**: User password
     
     Returns access token (15 min), refresh token (7 days), and user info
@@ -186,21 +186,21 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
     ip_address = req.client.host if req.client else "Unknown"
     
     # Authenticate user
-    user = authenticate_user(db, request.email, request.password)
+    user = authenticate_user(db, request.username, request.password)
     
     if not user:
         # Log failed login attempt
         audit_service.log_security_event(
             event_type=AuditEventType.AUTH_FAILED,
-            action=f"Failed login attempt for email: {request.email}",
-            username=request.email,
+            action=f"Failed login attempt for username: {request.username}",
+            username=request.username,
             ip_address=ip_address,
             success=False,
-            error_message="Incorrect email or password"
+            error_message="Incorrect username or password"
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

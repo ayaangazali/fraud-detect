@@ -1,7 +1,7 @@
 import apiClient from './apiClient';
 
 export interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 
