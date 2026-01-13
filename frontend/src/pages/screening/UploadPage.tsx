@@ -10,12 +10,12 @@ import apiClient from '@/services/apiClient';
 
 const UploadPage: React.FC = () => {
   const navigate = useNavigate();
-  const [kamcoFile, setKamcoFile] = useState<File | null>(null);
   const [blacklistFile, setBlacklistFile] = useState<File | null>(null);
+  const [threshold, setThreshold] = useState<number>(70);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleUpload = async () => {
-    // Blacklist file is REQUIRED
+    // Blacklist file is REQUIRED (to screen against KAMCO entities)
     if (!blacklistFile) {
       toast.error('Blacklist file is required to start screening');
       return;
@@ -23,38 +23,42 @@ const UploadPage: React.FC = () => {
 
     setIsUploading(true);
     try {
-      // Upload blacklist file
-      const blacklistFormData = new FormData();
-      blacklistFormData.append('file', blacklistFile);
+      // Upload blacklist file to screen against pre-loaded KAMCO entities
+      const formData = new FormData();
+      formData.append('file', blacklistFile);
+      formData.append('threshold', threshold.toString());
 
-      const blacklistResponse = await apiClient.post('/upload/blacklist', blacklistFormData, {
+      const response = await apiClient.post('/screening/v2/upload-blacklist', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      if (!blacklistResponse.data.success) {
+      if (!response.data.success) {
         throw new Error('Blacklist upload failed');
       }
 
-      // Backend returns: { success, message, data: { valid_records, stored_count, ... } }
-      const uploadData = blacklistResponse.data.data;
-      toast.success(`Blacklist uploaded: ${uploadData.stored_count} of ${uploadData.valid_records} records processed`);
-
-      // Upload Kamco file if provided (OPTIONAL)
-      if (kamcoFile) {
-        // Note: The backend doesn't have a specific kamco upload endpoint yet
-        // This is a placeholder for future implementation
-        toast('Kamco file upload endpoint coming soon', { icon: 'ℹ️' });
+      const uploadData = response.data;
+      const entriesProcessed = uploadData.entries_processed || 0;
+      const matchesFound = uploadData.matches_found || 0;
+      
+      toast.success(`✅ Processed ${entriesProcessed} blacklist entries successfully!`);
+      
+      if (matchesFound > 0) {
+        toast.success(`🎯 Found ${matchesFound} potential matches against KAMCO entities!`, {
+          duration: 5000,
+        });
+      } else {
+        toast.success('No matches found - all clear!');
       }
 
       // Navigate to screening queue
       setTimeout(() => {
         navigate('/screening');
-      }, 1500);
+      }, 2000);
     } catch (error: any) {
       console.error('Upload error:', error);
-      const errorMessage = error.response?.data?.detail || error.message || 'Upload failed. Please try again.';
+      const errorMessage = error.response?.data?.detail?.message || error.response?.data?.detail || error.message || 'Upload failed. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsUploading(false);
@@ -65,9 +69,9 @@ const UploadPage: React.FC = () => {
     <MainLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Upload Files</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Upload Blacklist File</h1>
           <p className="text-muted-foreground">
-            Upload blacklist file (required) and optionally Kamco database file for screening
+            Upload blacklist CSV file to screen against KAMCO entities database
           </p>
         </div>
 
@@ -83,7 +87,7 @@ const UploadPage: React.FC = () => {
                 </span>
               </CardTitle>
               <CardDescription>
-                Upload Excel or CSV file containing blacklist data (sanctions, PEPs, watchlists)
+                Upload CSV file containing blacklisted individuals/entities (sanctions, PEPs, watchlists) - sample_blacklist.csv format
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -96,27 +100,42 @@ const UploadPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Kamco File Upload - OPTIONAL */}
+          {/* Threshold Slider */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileSpreadsheet className="h-5 w-5" />
-                Kamco Database File
-                <span className="ml-2 text-xs font-normal text-muted-foreground bg-muted px-2 py-1 rounded">
-                  Optional
-                </span>
+                Match Threshold
               </CardTitle>
               <CardDescription>
-                Upload Excel or CSV file containing Kamco customer/client data (optional - can screen blacklist only)
+                Set minimum match score to consider (0-100%). Higher = stricter matching
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FileUploadComponent onUpload={setKamcoFile} />
-              {kamcoFile && (
-                <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-                  ✓ {kamcoFile.name} ready to upload
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Threshold: {threshold}%</label>
+                  <span className="text-xs text-muted-foreground">
+                    {threshold < 50 ? 'Very Loose' : threshold < 70 ? 'Moderate' : threshold < 85 ? 'Strict' : 'Very Strict'}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={threshold}
+                  onChange={(e) => setThreshold(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>0% (All)</span>
+                  <span>50%</span>
+                  <span>100% (Exact)</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Recommended: 70% for balanced screening
                 </p>
-              )}
+              </div>
             </CardContent>
           </Card>
 
@@ -135,7 +154,7 @@ const UploadPage: React.FC = () => {
               ) : (
                 <>
                   <UploadIcon className="mr-2 h-4 w-4" />
-                  Start Screening
+                  Upload & Screen
                 </>
               )}
             </Button>
@@ -145,9 +164,12 @@ const UploadPage: React.FC = () => {
           <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
             <p className="font-medium mb-2">📋 How it works:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li><strong>Blacklist file (Required):</strong> Must contain sanctioned entities, PEPs, or watchlist data</li>
-              <li><strong>Kamco file (Optional):</strong> If provided, will be screened against the blacklist</li>
-              <li><strong>No Kamco file?</strong> You can still upload and manage blacklist data for future screenings</li>
+              <li><strong>KAMCO Entities (Pre-loaded):</strong> Your KAMCO database (clients, vendors, staff) is already in the system</li>
+              <li><strong>Blacklist Upload (Required):</strong> Upload blacklist CSV with sanctions, PEPs, watchlists</li>
+              <li><strong>Weighted Matching:</strong> System uses fuzzy matching (Name 40%, Arabic 35%, ID 15%, Nationality 10%)</li>
+              <li><strong>Threshold:</strong> Only matches above your set threshold will be shown</li>
+              <li><strong>Smart Filtering:</strong> Already-decided cases are automatically skipped</li>
+              <li><strong>Results:</strong> Any matches will appear in the Screening Queue for review</li>
             </ul>
           </div>
         </div>

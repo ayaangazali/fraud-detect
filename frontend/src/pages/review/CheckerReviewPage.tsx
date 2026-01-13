@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, RotateCcw, Clock, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '@/services/apiClient';
+import BulkReviewWizard from '@/components/review/BulkReviewWizard';
 
 interface ReviewItem {
   id: number;
@@ -29,6 +30,8 @@ const CheckerReviewPage: React.FC = () => {
   const [reviewNotes, setReviewNotes] = useState('');
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [showBulkWizard, setShowBulkWizard] = useState(false);
 
   useEffect(() => {
     fetchCheckerQueue();
@@ -77,6 +80,20 @@ const CheckerReviewPage: React.FC = () => {
     setReviewNotes('');
   };
 
+  const toggleItemSelection = (itemId: number) => {
+    setSelectedItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const handleBulkReviewComplete = () => {
+    setSelectedItems([]);
+    setShowBulkWizard(false);
+    fetchCheckerQueue(); // Refresh the queue
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -91,8 +108,20 @@ const CheckerReviewPage: React.FC = () => {
           {/* Review Queue */}
           <Card>
             <CardHeader>
-              <CardTitle>Pending Review ({reviewItems.length})</CardTitle>
-              <CardDescription>Items flagged by screeners</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Pending Review ({reviewItems.length})</CardTitle>
+                  <CardDescription>Items flagged by screeners</CardDescription>
+                </div>
+                {selectedItems.length > 0 && (
+                  <Button
+                    onClick={() => setShowBulkWizard(true)}
+                    className="ml-auto"
+                  >
+                    Review {selectedItems.length} Items
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -108,38 +137,51 @@ const CheckerReviewPage: React.FC = () => {
                   {reviewItems.map((item) => (
                     <div
                       key={item.id}
-                      onClick={() => setSelectedItem(item)}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      className={`p-4 border rounded-lg transition-colors ${
                         selectedItem?.id === item.id
                           ? 'border-primary bg-primary/5'
                           : 'hover:bg-muted/50'
                       }`}
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{item.kamco_name}</p>
-                          <Badge 
-                            variant={
-                              item.severity === 'high' || item.severity === 'critical' 
-                                ? 'destructive' 
-                                : 'secondary'
-                            } 
-                            className="gap-1"
-                          >
-                            <AlertTriangle className="h-3 w-3" />
-                            {item.match_score}%
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Match: {item.blacklist_name}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
-                          <span>•</span>
-                          <span>{item.severity} severity</span>
-                          <span>•</span>
-                          <span>{item.match_type}</span>
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.includes(item.id)}
+                          onChange={() => toggleItemSelection(item.id)}
+                          className="mt-1 h-4 w-4 rounded border-gray-300"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div 
+                          className="flex-1 cursor-pointer"
+                          onClick={() => setSelectedItem(item)}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="font-medium">{item.kamco_name}</p>
+                              <Badge 
+                                variant={
+                                  item.severity === 'high' || item.severity === 'critical' 
+                                    ? 'destructive' 
+                                    : 'secondary'
+                                } 
+                                className="gap-1"
+                              >
+                                <AlertTriangle className="h-3 w-3" />
+                                {item.match_score}%
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Match: {item.blacklist_name}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
+                              <span>•</span>
+                              <span>{item.severity} severity</span>
+                              <span>•</span>
+                              <span>{item.match_type}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -261,6 +303,14 @@ const CheckerReviewPage: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Bulk Review Wizard */}
+        <BulkReviewWizard
+          isOpen={showBulkWizard}
+          onClose={() => setShowBulkWizard(false)}
+          selectedItemIds={selectedItems}
+          onReviewComplete={handleBulkReviewComplete}
+        />
       </div>
     </MainLayout>
   );

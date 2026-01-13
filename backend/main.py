@@ -11,7 +11,7 @@ import os
 load_dotenv()
 
 # Import routes
-from routes import scan, review, auth, checker, finalizer, upload, screening, reports, audit, review_manager
+from routes import scan, review, auth, checker, finalizer, upload, screening, reports, audit, review_manager, users, kamco_upload
 
 # Import audit middleware
 from middleware.audit_middleware import setup_audit_middleware
@@ -69,6 +69,8 @@ async def api_root():
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(users.router, prefix="/api/users", tags=["User Management"])
+app.include_router(kamco_upload.router, prefix="/api/upload", tags=["Kamco Entities Upload"])
 app.include_router(upload.router, prefix="/api/upload", tags=["Upload"])
 app.include_router(scan.router, prefix="/api/scan", tags=["Scan"])
 app.include_router(review.router, prefix="/api/review", tags=["Review"])

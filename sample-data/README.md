@@ -17,16 +17,38 @@ This directory contains **complete sample data** for the Kamco Fraud Detection S
 
 | File | Size | Records | Purpose |
 |------|------|---------|---------|
+| **kamco_entities_sample.csv** | NEW | 40 entities | **MAIN INPUT FILE** - Comprehensive entity data with Arabic/English names |
 | **kamco_master_database.xlsx** | 12 KB | 75 entities | Current Kamco database to screen |
 | **historical_logbook.xlsx** | 16 KB | 140 entries | Past cases with complete audit trail |
 | **blacklist_comprehensive.xlsx** | 7.5 KB | 18 entities | Sanctions watchlist |
 
-### 📊 LEGACY FILES (Previous Session)
+### � NEW: COMPREHENSIVE CSV INPUT FILE
 
-| File | Size | Records | Notes |
-|------|------|---------|-------|
-| kamco_database_sample.xlsx | 9.9 KB | 45 entities | Earlier version (superseded) |
-| screening-list-sample.xlsx | 11 KB | 5 records | Original template |
+**kamco_entities_sample.csv** contains 40 sample entities with complete information:
+
+**Columns:**
+- Customer_ID (e.g., KCLI-2024-001, KVEN-2024-001, KSTA-2024-001, KOTH-2024-001)
+- Name_English (English name)
+- Name_Arabic (Arabic name - محمد أحمد الراشد)
+- Entity_Type (Client/Vendor/Staff/Other)
+- Entity_Category (Individual/Corporate/Regulatory Authority/etc.)
+- ID_Number (Unique identifier)
+- Registration_Date
+- Contact_Person
+- Type_Individual_Corporate (Individual or Corporate)
+- Nationality (Kuwaiti, Saudi, American, etc.)
+- Country_of_Origin (Kuwait, UAE, USA, etc.)
+- Industry_Sector (Real Estate, Banking, IT Services, etc.)
+- Risk_Level (High/Medium/Low/N/A)
+- Account_Status (Active/Inactive)
+- Phone, Email, Address
+- Notes (Additional details)
+
+**Entity Breakdown:**
+- 10 Clients (KCLI) - Mix of individuals and corporations
+- 10 Vendors (KVEN) - Service providers and suppliers
+- 10 Staff (KSTA) - Kamco employees
+- 10 Others (KOTH) - Regulatory bodies, government entities, associations
 
 ### 📖 DOCUMENTATION
 

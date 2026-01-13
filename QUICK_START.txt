@@ -1,0 +1,239 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                     🚀 QUICK START GUIDE                           ║
+╚════════════════════════════════════════════════════════════════════╝
+
+⚡ ONE-TIME SETUP (First time only)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cd /Users/ayaangazali/Documents/hackathons/Kamco/backend
+python3 init_database.py
+
+✅ This creates:
+   - All 21 database tables
+   - 3 test users (screener, checker, finalizer)
+   - 24 pre-loaded KAMCO entities
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 DAILY USE (Every time)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TERMINAL 1 - Backend:
+cd /Users/ayaangazali/Documents/hackathons/Kamco/backend
+python3 main.py
+
+✅ Backend running on: http://localhost:8000
+
+TERMINAL 2 - Frontend:
+cd /Users/ayaangazali/Documents/hackathons/Kamco/frontend
+npm run dev
+
+✅ Frontend running on: http://localhost:5173
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 LOGIN CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Open: http://localhost:5173/login
+
+SCREENER (Upload blacklists):
+  Username: screener_test
+  Password: ScreenerPass123!
+
+CHECKER (Review matches):
+  Username: checker_test
+  Password: CheckerPass123!
+
+FINALIZER (Final approval, reports):
+  Username: finalizer_test
+  Password: FinalizerPass123!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📤 UPLOAD BLACKLIST (Screener Role)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Login as: screener_test / ScreenerPass123!
+2. Navigate to: "Upload" page
+3. Upload file: test_data/sample_blacklist.csv
+4. Set threshold: 70% (recommended)
+5. Click: "Upload & Screen"
+6. System screens blacklist against 24 KAMCO entities
+7. Results stored in database
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ BULK REVIEW (Checker Role)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Login as: checker_test / CheckerPass123!
+2. Go to: "Checker Review" page
+3. Check boxes next to items to review
+4. Click: "Review X Items" button
+5. Bulk Review Wizard opens:
+   
+   For each item:
+   ✓ See KAMCO entity details (left)
+   ✓ See Blacklist entry details (right)
+   ✓ View match score & breakdown
+   ✓ Choose decision:
+     - Flagged (Approve match)
+     - Not Flagged (Reject match)
+     - Needs Escalation
+   ✓ Add review notes
+   ✓ Click "Next ▶" for next item
+   
+6. Check "Generate Reports" if needed
+7. Click "Submit All (X)" when done
+8. PDFs generated automatically!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 GENERATE REPORTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPTION 1: During Bulk Review
+- Check "Generate Reports" checkbox
+- Submit reviews
+- PDFs created automatically
+
+OPTION 2: Manual Generation
+- Go to Reports page
+- Click "Generate Report"
+- Select report type:
+  * Individual item report
+  * Cumulative report
+  * Compliance audit report
+- Download PDF
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📧 EMAIL REPORTS TO TEAMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Go to Reports page
+2. Select report(s)
+3. Click "Email Report"
+4. Choose recipients:
+   ✓ Wealth Management team
+   ✓ Investment Banking team
+   ✓ Compliance team
+   ✓ Custom email addresses
+5. Select delivery method:
+   ✓ Email (default)
+   ✓ SMS (if configured)
+6. Click "Send"
+7. Track delivery status
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 RUN TESTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cd /Users/ayaangazali/Documents/hackathons/Kamco/backend
+
+# Run all tests
+python3 -m pytest tests/ -v
+
+# Run specific test file
+python3 -m pytest tests/test_comprehensive.py -v
+
+# Run with coverage
+python3 -m pytest tests/test_comprehensive.py --cov=routes --cov-report=term-missing
+
+Expected results: 117+ tests passing ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 SAMPLE DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Blacklist CSV:
+/Users/ayaangazali/Documents/hackathons/Kamco/test_data/sample_blacklist.csv
+
+Contents:
+- 20 blacklisted individuals
+- UN, OFAC, EU sanctions
+- Various risk levels
+- Mix of exact and fuzzy matches
+
+KAMCO Entities (pre-loaded):
+- 24 entities in database
+- Clients, Vendors, Staff
+- Ready for screening
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 API ENDPOINTS (for testing)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Base URL: http://localhost:8000
+
+Authentication:
+  POST /api/auth/login
+  POST /api/auth/refresh
+  GET  /api/auth/me
+
+Screening V2:
+  POST /api/screening/v2/upload-blacklist
+  GET  /api/screening/v2/pending-matches
+  GET  /api/screening/v2/uploads
+  GET  /api/screening/v2/kamco-entities
+  POST /api/screening/v2/decision
+  GET  /api/screening/v2/logbook
+
+Reports:
+  POST /api/reports/generate
+  GET  /api/reports
+  GET  /api/reports/{id}/download
+  POST /api/reviews/email-report
+
+Review Manager:
+  POST /api/reviews/bulk-items-details
+  POST /api/reviews/submit-bulk-wizard
+  POST /api/reviews/generate-reports-batch
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Issue: "No such table" error
+Fix: Run init_database.py first
+
+Issue: 401 Unauthorized
+Fix: Login again, token may have expired
+
+Issue: No matches found
+Fix: Lower threshold (try 50%) or check CSV format
+
+Issue: Can't upload file
+Fix: Ensure file is CSV format, check file size
+
+Issue: Frontend can't connect
+Fix: Ensure backend is running on port 8000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DOCUMENTATION FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+COMPLETE_FEATURES.txt    - All features implemented
+SYSTEM_STATUS.txt        - Current system status
+V2_FIXED_SUMMARY.txt     - V2 endpoint fixes
+QUICK_START.txt          - This file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 YOU'RE READY TO GO!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Run init_database.py (first time only)
+2. Start backend (python3 main.py)
+3. Start frontend (npm run dev)
+4. Login and test!
+
+Everything is working and ready for use! 🚀
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

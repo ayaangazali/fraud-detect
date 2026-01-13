@@ -1,0 +1,32 @@
+# Test Dependencies for Kamco Fraud Detection System
+
+# Core Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# HTTP Testing
+httpx==0.25.2
+requests==2.31.0
+
+# FastAPI Testing
+fastapi[all]==0.109.0
+starlette==0.35.1
+
+# Database Testing
+sqlalchemy==2.0.23
+alembic==1.13.1
+
+# Mocking and Fixtures
+pytest-mock==3.12.0
+faker==20.1.0
+
+# Code Quality
+flake8==6.1.0
+black==23.12.1
+mypy==1.7.1
+pylint==3.0.3
+
+# Coverage Reports
+coverage==7.3.4
+pytest-html==4.1.1

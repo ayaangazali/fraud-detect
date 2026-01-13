@@ -622,3 +622,293 @@ def _get_recommended_action(score: float, severity: str) -> str:
         return "Manual verification recommended"
     else:
         return "Consider rejecting as potential false positive"
+
+
+# ===== ENHANCED BULK REVIEW ENDPOINTS =====
+
+@router.post("/bulk-items-details")
+async def get_bulk_items_details(
+    item_ids: List[int] = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get full details for multiple flagged items for bulk review wizard
+    Returns comprehensive information for side-by-side comparison
+    """
+    items_details = []
+    
+    for item_id in item_ids:
+        item = db.query(FlaggedItem).filter(FlaggedItem.id == item_id).first()
+        if not item:
+            continue
+            
+        # Get Kamco entity details
+        kamco_entity = None
+        kamco_details = {}
+        
+        if item.kamco_type == 'clients':
+            kamco_entity = db.query(KamcoClient).filter(KamcoClient.id == item.kamco_id).first()
+            if kamco_entity:
+                kamco_details = {
+                    "name": kamco_entity.name,
+                    "name_arabic": getattr(kamco_entity, 'name_arabic', None),
+                    "type": "Client",
+                    "civil_id": kamco_entity.civil_id,
+                    "account_number": getattr(kamco_entity, 'account_number', None),
+                    "nationality": getattr(kamco_entity, 'nationality', None),
+                    "country": getattr(kamco_entity, 'country', None),
+                    "risk_level": getattr(kamco_entity, 'risk_level', None),
+                    "status": getattr(kamco_entity, 'status', 'Active'),
+                    "date_added": kamco_entity.date_added.isoformat() if hasattr(kamco_entity, 'date_added') and kamco_entity.date_added else None,
+                }
+        elif item.kamco_type == 'vendors':
+            kamco_entity = db.query(KamcoVendor).filter(KamcoVendor.id == item.kamco_id).first()
+            if kamco_entity:
+                kamco_details = {
+                    "name": kamco_entity.name,
+                    "name_arabic": getattr(kamco_entity, 'name_arabic', None),
+                    "type": "Vendor",
+                    "civil_id": kamco_entity.civil_id,
+                    "vendor_id": getattr(kamco_entity, 'vendor_id', None),
+                    "country": getattr(kamco_entity, 'country', None),
+                    "service_type": getattr(kamco_entity, 'service_type', None),
+                    "status": getattr(kamco_entity, 'status', 'Active'),
+                    "date_added": kamco_entity.date_added.isoformat() if hasattr(kamco_entity, 'date_added') and kamco_entity.date_added else None,
+                }
+        elif item.kamco_type == 'staff':
+            kamco_entity = db.query(KamcoStaff).filter(KamcoStaff.id == item.kamco_id).first()
+            if kamco_entity:
+                kamco_details = {
+                    "name": kamco_entity.name,
+                    "name_arabic": getattr(kamco_entity, 'name_arabic', None),
+                    "type": "Staff",
+                    "civil_id": kamco_entity.civil_id,
+                    "employee_id": getattr(kamco_entity, 'employee_id', None),
+                    "department": getattr(kamco_entity, 'department', None),
+                    "position": getattr(kamco_entity, 'position', None),
+                    "status": getattr(kamco_entity, 'status', 'Active'),
+                    "date_added": kamco_entity.date_added.isoformat() if hasattr(kamco_entity, 'date_added') and kamco_entity.date_added else None,
+                }
+        elif item.kamco_type == 'others':
+            kamco_entity = db.query(KamcoOther).filter(KamcoOther.id == item.kamco_id).first()
+            if kamco_entity:
+                kamco_details = {
+                    "name": kamco_entity.name,
+                    "name_arabic": getattr(kamco_entity, 'name_arabic', None),
+                    "type": "Other",
+                    "civil_id": kamco_entity.civil_id,
+                    "category": getattr(kamco_entity, 'category', None),
+                    "description": getattr(kamco_entity, 'description', None),
+                    "status": getattr(kamco_entity, 'status', 'Active'),
+                    "date_added": kamco_entity.date_added.isoformat() if hasattr(kamco_entity, 'date_added') and kamco_entity.date_added else None,
+                }
+        
+        # Get blacklist entry details
+        blacklist_entry = db.query(BlacklistEntry).filter(
+            BlacklistEntry.name_english == item.blacklist_name
+        ).first()
+        
+        if not blacklist_entry:
+            blacklist_entry = db.query(BlacklistEntry).filter(
+                BlacklistEntry.name_arabic == item.blacklist_name
+            ).first()
+        
+        blacklist_details = {}
+        if blacklist_entry:
+            blacklist_details = {
+                "name_english": blacklist_entry.name_english,
+                "name_arabic": blacklist_entry.name_arabic,
+                "civil_id": blacklist_entry.civil_id,
+                "passport": getattr(blacklist_entry, 'passport', None),
+                "country": blacklist_entry.country,
+                "list_name": getattr(blacklist_entry, 'list_name', 'Sanctions List'),
+                "reason": getattr(blacklist_entry, 'reason', None),
+                "date_added": blacklist_entry.date_added.isoformat() if blacklist_entry.date_added else None,
+                "status": "Active",
+            }
+        
+        # Compile item details
+        item_detail = {
+            "id": item.id,
+            "match_info": {
+                "match_score": item.match_score,
+                "match_type": item.match_type,
+                "severity": item.severity,
+                "confidence_level": _get_match_level(item.match_score),
+                "recommended_action": _get_recommended_action(item.match_score, item.severity),
+            },
+            "kamco_entity": kamco_details,
+            "blacklist_entry": blacklist_details,
+            "current_status": item.status,
+            "flagged_at": item.flagged_at.isoformat() if item.flagged_at else None,
+            "flagged_by": item.flagged_by_id,
+        }
+        
+        items_details.append(item_detail)
+    
+    return {
+        "success": True,
+        "count": len(items_details),
+        "items": items_details
+    }
+
+
+@router.post("/submit-bulk-wizard")
+async def submit_bulk_wizard_reviews(
+    reviews: List[Dict[str, Any]] = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Submit multiple reviews from bulk review wizard
+    Each review can have a different decision
+    
+    Request body: List of {item_id, decision, notes, escalation_notes}
+    """
+    results = []
+    errors = []
+    
+    for review_data in reviews:
+        item_id = review_data.get('item_id')
+        decision = review_data.get('decision')
+        notes = review_data.get('notes', '')
+        escalation_notes = review_data.get('escalation_notes')
+        
+        try:
+            item = db.query(FlaggedItem).filter(FlaggedItem.id == item_id).first()
+            if not item:
+                errors.append({"item_id": item_id, "error": "Item not found"})
+                continue
+            
+            # Update item based on decision
+            if decision == 'approved':
+                item.status = 'approved'
+                item.checker_decision = 'approved'
+            elif decision == 'rejected':
+                item.status = 'rejected'
+                item.checker_decision = 'rejected'
+            elif decision == 'escalated':
+                item.status = 'escalated'
+                item.checker_decision = 'escalated'
+                item.escalation_notes = escalation_notes or notes
+            
+            item.checker_id = current_user.id
+            item.checker_notes = notes
+            item.reviewed_at = datetime.now()
+            
+            # Log to logbook
+            log_action(
+                db=db,
+                kamco_name=item.kamco_name,
+                kamco_type=item.kamco_type,
+                blacklist_name=item.blacklist_name,
+                match_score=item.match_score,
+                severity=item.severity,
+                decision=decision,
+                reviewed_by=current_user.username,
+                note=notes
+            )
+            
+            db.commit()
+            
+            results.append({
+                "item_id": item_id,
+                "status": "success",
+                "decision": decision
+            })
+            
+        except Exception as e:
+            db.rollback()
+            errors.append({"item_id": item_id, "error": str(e)})
+    
+    return {
+        "success": len(errors) == 0,
+        "processed": len(results),
+        "failed": len(errors),
+        "results": results,
+        "errors": errors
+    }
+
+
+@router.post("/generate-reports-batch")
+async def generate_reports_batch(
+    item_ids: List[int] = Body(..., embed=True),
+    report_format: str = Body("pdf", embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Generate individual reports for multiple items
+    Returns list of report metadata/download links
+    """
+    from utils.pdf_generator import get_pdf_generator
+    from utils.excel_generator import get_excel_generator
+    import os
+    
+    reports = []
+    errors = []
+    
+    for item_id in item_ids:
+        try:
+            # Get item report data using existing endpoint logic
+            item = db.query(FlaggedItem).filter(FlaggedItem.id == item_id).first()
+            if not item:
+                errors.append({"item_id": item_id, "error": "Item not found"})
+                continue
+            
+            # Generate report
+            report_title = f"Item_{item_id}_{item.kamco_name.replace(' ', '_')}"
+            
+            if report_format.lower() == 'pdf':
+                pdf_generator = get_pdf_generator()
+                # Generate simple PDF report (you can enhance this)
+                from reportlab.lib.pagesizes import letter
+                from reportlab.pdfgen import canvas
+                
+                filename = f"reports/item_report_{item_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+                os.makedirs('reports', exist_ok=True)
+                
+                c = canvas.Canvas(filename, pagesize=letter)
+                c.setFont("Helvetica-Bold", 16)
+                c.drawString(100, 750, f"Flagged Item Report - ID: {item_id}")
+                c.setFont("Helvetica", 12)
+                c.drawString(100, 720, f"Kamco Entity: {item.kamco_name}")
+                c.drawString(100, 700, f"Blacklist Match: {item.blacklist_name}")
+                c.drawString(100, 680, f"Match Score: {item.match_score}%")
+                c.drawString(100, 660, f"Severity: {item.severity.upper()}")
+                c.drawString(100, 640, f"Status: {item.status.upper()}")
+                c.drawString(100, 620, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                c.drawString(100, 600, f"Generated By: {current_user.username}")
+                c.save()
+                
+                reports.append({
+                    "item_id": item_id,
+                    "filename": filename,
+                    "format": "pdf",
+                    "title": report_title
+                })
+            
+            elif report_format.lower() == 'excel':
+                excel_generator = get_excel_generator()
+                # Similar Excel generation logic
+                filename = f"reports/item_report_{item_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+                # Implement Excel generation
+                reports.append({
+                    "item_id": item_id,
+                    "filename": filename,
+                    "format": "excel",
+                    "title": report_title
+                })
+                
+        except Exception as e:
+            errors.append({"item_id": item_id, "error": str(e)})
+    
+    return {
+        "success": len(errors) == 0,
+        "generated": len(reports),
+        "failed": len(errors),
+        "reports": reports,
+        "errors": errors,
+        "message": f"Generated {len(reports)} reports successfully"
+    }

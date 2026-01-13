@@ -1,0 +1,671 @@
+"""
+Kamco Entities Seed Data
+Pre-loaded into database - represents actual KAMCO clients, vendors, staff, etc.
+This data would be replaced with real data in production.
+"""
+
+KAMCO_ENTITIES = [
+    # ============== CLIENTS ==============
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-001",
+        "name_english": "Mohammed Ahmed Al-Rashid",  # EXACT MATCH with blacklist
+        "name_arabic": "محمد أحمد الراشد",
+        "civil_id": "284031500123",
+        "passport_number": "K12345678",
+        "date_of_birth": "1975-03-15",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Kuwait City",
+        "address": "Block 5 Street 10 House 25",
+        "phone": "+965-9999-1234",
+        "email": "m.rashid@email.com",
+        "occupation": "Businessman",
+        "employer": "Al-Rashid Trading",
+        "position": "CEO",
+        "account_status": "Active",
+        "risk_level": "High",
+        "onboarding_date": "2020-01-15",
+        "last_review_date": "2024-06-01",
+        "notes": "High-value client, requires enhanced monitoring"
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-002",
+        "name_english": "Fatima Hassan Abdullah",  # EXACT MATCH with blacklist
+        "name_arabic": "فاطمة حسن عبدالله",
+        "civil_id": "281082200456",
+        "passport_number": "Q98765432",
+        "date_of_birth": "1982-07-22",
+        "nationality": "Iraqi",
+        "secondary_nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Salmiya",
+        "address": "Avenue 5 Building 12 Apt 34",
+        "phone": "+965-6666-5555",
+        "email": "fatima.h@email.com",
+        "occupation": "Accountant",
+        "employer": "Gulf Financial Services",
+        "position": "Senior Accountant",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "onboarding_date": "2019-05-20",
+        "last_review_date": "2024-03-10",
+        "notes": ""
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-003",
+        "name_english": "Ahmed Salem Al-Dosari",  # EXACT MATCH with blacklist
+        "name_arabic": "أحمد سالم الدوسري",
+        "civil_id": "272090800111",
+        "passport_number": "QA98765432",
+        "date_of_birth": "1972-09-08",
+        "nationality": "Qatari",
+        "secondary_nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Hawalli",
+        "address": "Block 7 Building 3 Apt 15",
+        "phone": "+965-5050-6060",
+        "email": "ahmed.d@business.kw",
+        "occupation": "Businessman",
+        "employer": "Dosari Holdings",
+        "position": "Chairman",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "onboarding_date": "2018-11-10",
+        "last_review_date": "2024-05-15",
+        "notes": "Former politician"
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-004",
+        "name_english": "Sara Ahmed Mutairi",  # CLOSE MATCH - slightly different name
+        "name_arabic": "سارة أحمد المطيري",
+        "civil_id": "290120500234",
+        "passport_number": "K99887766",
+        "date_of_birth": "1990-12-05",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Jabriya",
+        "address": "Block 10 Apt 5",
+        "phone": "+965-9876-5432",
+        "email": "sara.m@email.com",
+        "occupation": "Business Owner",
+        "employer": "Mutairi Fashion LLC",
+        "position": "Owner",
+        "account_status": "Active",
+        "risk_level": "Low",
+        "onboarding_date": "2021-03-01",
+        "last_review_date": "2024-01-05",
+        "notes": ""
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-005",
+        "name_english": "Khalid Sultan Ibrahim",  # PARTIAL MATCH - name order different
+        "name_arabic": "خالد سلطان إبراهيم",
+        "civil_id": "280050518000",  # Different civil ID
+        "passport_number": "S55443300",
+        "date_of_birth": "1980-05-18",
+        "nationality": "Saudi",
+        "secondary_nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Hawalli",
+        "address": "Block 2 Street 8 Villa 15",
+        "phone": "+965-5555-4444",
+        "email": "k.sultan@email.kw",
+        "occupation": "Government Official",
+        "employer": "Ministry of Finance",
+        "position": "Director",
+        "account_status": "Active",
+        "risk_level": "High",
+        "onboarding_date": "2017-08-20",
+        "last_review_date": "2024-02-28",
+        "notes": "PEP - government official"
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-006",
+        "name_english": "Omar Al-Iraqi",  # PARTIAL MATCH - shortened name
+        "name_arabic": "عمر العراقي",
+        "civil_id": "265062000000",  # Different civil ID
+        "passport_number": "IQ22223333",
+        "date_of_birth": "1965-06-20",
+        "nationality": "Iraqi",
+        "country_of_residence": "Kuwait",
+        "city": "Farwaniya",
+        "address": "Block 1 Apt 10",
+        "phone": "+965-1234-5678",
+        "email": "omar.i@email.com",
+        "occupation": "Retired",
+        "employer": "",
+        "position": "",
+        "account_status": "Active",
+        "risk_level": "Low",
+        "onboarding_date": "2015-04-10",
+        "last_review_date": "2023-09-01",
+        "notes": ""
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-007",
+        "name_english": "Layla Khalid Sabah",  # CLOSE MATCH - missing "Al-"
+        "name_arabic": "ليلى خالد صباح",
+        "civil_id": "295022800222",
+        "passport_number": "K55667788",
+        "date_of_birth": "1995-02-28",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Kuwait City",
+        "address": "Daiya Block 1 House 5",
+        "phone": "+965-1111-2222",
+        "email": "layla.s@email.kw",
+        "occupation": "Royal Family",
+        "employer": "",
+        "position": "",
+        "account_status": "Active",
+        "risk_level": "High",
+        "onboarding_date": "2023-06-01",
+        "last_review_date": "2024-02-01",
+        "notes": "Royal family member - enhanced monitoring"
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-008",
+        "name_english": "Noor Hassan Mohammed",  # PARTIAL MATCH - name order different
+        "name_arabic": "نور حسن محمد",
+        "civil_id": "288041200000",  # Different civil ID
+        "passport_number": "EG11112222",
+        "date_of_birth": "1988-04-12",
+        "nationality": "Egyptian",
+        "secondary_nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Fahaheel",
+        "address": "Block 8 Building 20 Apt 12",
+        "phone": "+965-7777-8888",
+        "email": "noor.h@company.com",
+        "occupation": "Finance Manager",
+        "employer": "Al-Hassan Group",
+        "position": "CFO",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "onboarding_date": "2019-10-15",
+        "last_review_date": "2024-04-20",
+        "notes": ""
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-009",
+        "name_english": "Faisal Nasser Kuwaiti",  # CLOSE MATCH - missing "Al-"
+        "name_arabic": "فيصل ناصر الكويتي",
+        "civil_id": "283011700200",
+        "passport_number": "K22334455",
+        "date_of_birth": "1983-01-17",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Hawalli",
+        "address": "Block 5 Building 15 Office 3",
+        "phone": "+965-2468-1357",
+        "email": "faisal.n@trading.kw",
+        "occupation": "Trader",
+        "employer": "Al-Kuwaiti Trading",
+        "position": "Managing Director",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "onboarding_date": "2020-07-01",
+        "last_review_date": "2024-08-01",
+        "notes": "Complex corporate structure"
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-010",
+        "name_english": "Hassan Ibrahim Saudi",  # CLOSE MATCH - missing "Al-"
+        "name_arabic": "حسن إبراهيم السعودي",
+        "civil_id": "270033000999",
+        "passport_number": "SA11112222",
+        "date_of_birth": "1970-03-30",
+        "nationality": "Saudi",
+        "country_of_residence": "Kuwait",
+        "city": "Kuwait City",
+        "address": "Sharq Tower Floor 20",
+        "phone": "+965-9090-8080",
+        "email": "hassan.s@business.kw",
+        "occupation": "Businessman",
+        "employer": "Saudi Holdings Group",
+        "position": "Regional Director",
+        "account_status": "Active",
+        "risk_level": "High",
+        "onboarding_date": "2016-03-15",
+        "last_review_date": "2024-07-01",
+        "notes": "PEP - former royal advisor"
+    },
+    
+    # ============== VENDORS ==============
+    {
+        "entity_type": "Vendor",
+        "entity_category": "Corporate",
+        "customer_id": "KVEN-001",
+        "name_english": "Al-Rashid Trading Company",  # RELATED to blacklisted individual
+        "name_arabic": "شركة الراشد للتجارة",
+        "civil_id": "",
+        "registration_number": "CR-12345-2010",
+        "date_of_incorporation": "2010-05-15",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Kuwait City",
+        "address": "Sharq Industrial Area Block 5",
+        "phone": "+965-2222-3333",
+        "email": "info@alrashidtrading.com",
+        "industry": "Trading",
+        "business_type": "Import/Export",
+        "account_status": "Active",
+        "risk_level": "High",
+        "onboarding_date": "2015-01-10",
+        "last_review_date": "2024-06-01",
+        "notes": "Owned by Mohammed Al-Rashid",
+        "beneficial_owner": "Mohammed Ahmed Al-Rashid"
+    },
+    {
+        "entity_type": "Vendor",
+        "entity_category": "Corporate",
+        "customer_id": "KVEN-002",
+        "name_english": "Gulf Financial Services",  # RELATED to blacklisted individual
+        "name_arabic": "خدمات الخليج المالية",
+        "civil_id": "",
+        "registration_number": "CR-54321-2015",
+        "date_of_incorporation": "2015-08-20",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Salmiya",
+        "address": "Salem Al-Mubarak Street Tower 10",
+        "phone": "+965-1800-5555",
+        "email": "contact@gulffinancial.kw",
+        "industry": "Financial Services",
+        "business_type": "Accounting & Advisory",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "onboarding_date": "2018-03-01",
+        "last_review_date": "2024-03-10",
+        "notes": "Employs Fatima Hassan Abdullah",
+        "beneficial_owner": ""
+    },
+    {
+        "entity_type": "Vendor",
+        "entity_category": "Corporate",
+        "customer_id": "KVEN-003",
+        "name_english": "Farsi International Trading",  # EXACT MATCH with blacklist company
+        "name_arabic": "فارسي الدولية للتجارة",
+        "civil_id": "",
+        "registration_number": "DMCC-99999-2018",
+        "date_of_incorporation": "2018-01-15",
+        "nationality": "UAE",
+        "country_of_residence": "UAE",
+        "city": "Dubai",
+        "address": "JLT Cluster Y Tower 15",
+        "phone": "+971-4-555-6666",
+        "email": "info@farsitrading.ae",
+        "industry": "Trading",
+        "business_type": "Import/Export",
+        "account_status": "Active",
+        "risk_level": "High",
+        "onboarding_date": "2019-06-01",
+        "last_review_date": "2024-01-20",
+        "notes": "UAE-based trading company",
+        "beneficial_owner": "Ali Mohammed Al-Farsi"
+    },
+    {
+        "entity_type": "Vendor",
+        "entity_category": "Corporate",
+        "customer_id": "KVEN-004",
+        "name_english": "Dosari Holdings",  # EXACT MATCH with blacklist company
+        "name_arabic": "دوسري القابضة",
+        "civil_id": "",
+        "registration_number": "QFC-77777-2012",
+        "date_of_incorporation": "2012-11-30",
+        "nationality": "Qatari",
+        "country_of_residence": "Qatar",
+        "city": "Doha",
+        "address": "West Bay Business Tower",
+        "phone": "+974-4444-5555",
+        "email": "info@dosariholdings.qa",
+        "industry": "Investment",
+        "business_type": "Holdings Company",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "onboarding_date": "2017-02-15",
+        "last_review_date": "2024-05-10",
+        "notes": "Chairman is Ahmed Salem Al-Dosari",
+        "beneficial_owner": "Ahmed Salem Al-Dosari"
+    },
+    {
+        "entity_type": "Vendor",
+        "entity_category": "Corporate",
+        "customer_id": "KVEN-005",
+        "name_english": "Emirates Properties LLC",  # RELATED to blacklist
+        "name_arabic": "الإمارات للعقارات",
+        "civil_id": "",
+        "registration_number": "DED-88888-2016",
+        "date_of_incorporation": "2016-04-10",
+        "nationality": "UAE",
+        "country_of_residence": "UAE",
+        "city": "Abu Dhabi",
+        "address": "Corniche Road Tower 25",
+        "phone": "+971-2-666-7777",
+        "email": "info@emiratesproperties.ae",
+        "industry": "Real Estate",
+        "business_type": "Property Sales",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "onboarding_date": "2020-09-01",
+        "last_review_date": "2024-03-01",
+        "notes": "Huda Al-Emirati works here",
+        "beneficial_owner": ""
+    },
+    
+    # ============== STAFF ==============
+    {
+        "entity_type": "Staff",
+        "entity_category": "Individual",
+        "customer_id": "KSTA-001",
+        "name_english": "Salma Abdul-Rahman",  # PARTIAL MATCH with blacklist
+        "name_arabic": "سلمى عبدالرحمن",
+        "civil_id": "293050500300",
+        "passport_number": "EG99998888",
+        "date_of_birth": "1993-05-05",
+        "nationality": "Egyptian",
+        "secondary_nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Jabriya",
+        "address": "Block 3 Apt 20",
+        "phone": "+965-9753-1246",
+        "email": "salma.r@kamco.com",
+        "occupation": "Procurement",
+        "employer": "KAMCO",
+        "position": "Procurement Officer",
+        "department": "Operations",
+        "employee_id": "EMP-001",
+        "hire_date": "2021-06-15",
+        "account_status": "Active",
+        "risk_level": "Low",
+        "last_review_date": "2024-06-01",
+        "notes": ""
+    },
+    {
+        "entity_type": "Staff",
+        "entity_category": "Individual",
+        "customer_id": "KSTA-002",
+        "name_english": "Zainab Ali Kuwaiti",  # CLOSE MATCH with blacklist
+        "name_arabic": "زينب علي الكويتي",
+        "civil_id": "298112200888",
+        "passport_number": "K77889900",
+        "date_of_birth": "1998-11-22",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Salmiya",
+        "address": "Block 12 Apt 8",
+        "phone": "+965-6543-2100",
+        "email": "zainab.k@kamco.com",
+        "occupation": "Analyst",
+        "employer": "KAMCO",
+        "position": "Junior Analyst",
+        "department": "Risk Management",
+        "employee_id": "EMP-002",
+        "hire_date": "2023-01-10",
+        "account_status": "Active",
+        "risk_level": "Low",
+        "last_review_date": "2024-05-15",
+        "notes": ""
+    },
+    {
+        "entity_type": "Staff",
+        "entity_category": "Individual",
+        "customer_id": "KSTA-003",
+        "name_english": "Tariq Al-Qatari",  # PARTIAL MATCH with blacklist
+        "name_arabic": "طارق القطري",
+        "civil_id": "275092800000",  # Different civil ID
+        "passport_number": "QA11112222",
+        "date_of_birth": "1975-09-28",
+        "nationality": "Qatari",
+        "country_of_residence": "Kuwait",
+        "city": "Kuwait City",
+        "address": "Sharq Tower Apt 15",
+        "phone": "+965-8080-9090",
+        "email": "tariq.q@kamco.com",
+        "occupation": "Consultant",
+        "employer": "KAMCO",
+        "position": "Senior Consultant",
+        "department": "Advisory",
+        "employee_id": "EMP-003",
+        "hire_date": "2018-04-01",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "last_review_date": "2024-05-01",
+        "notes": ""
+    },
+    
+    # ============== OTHER (Board Members, Shareholders, etc.) ==============
+    {
+        "entity_type": "Board Member",
+        "entity_category": "Individual",
+        "customer_id": "KBRD-001",
+        "name_english": "Abdullah Youssef Kuwaiti",  # CLOSE MATCH with blacklist
+        "name_arabic": "عبدالله يوسف الكويتي",
+        "civil_id": "255082500567",
+        "passport_number": "K11223344",
+        "date_of_birth": "1955-08-25",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Salwa",
+        "address": "Block 3 Street 5 House 10",
+        "phone": "+965-2222-3333",
+        "email": "abdullah.y@kamco.com",
+        "occupation": "Board Member",
+        "employer": "KAMCO",
+        "position": "Board Member",
+        "department": "Board of Directors",
+        "account_status": "Active",
+        "risk_level": "High",
+        "last_review_date": "2023-12-01",
+        "notes": "Former military general"
+    },
+    {
+        "entity_type": "Shareholder",
+        "entity_category": "Individual",
+        "customer_id": "KSHA-001",
+        "name_english": "Maryam Jassim Al-Qatari",  # EXACT MATCH with blacklist
+        "name_arabic": "مريم جاسم القطري",
+        "civil_id": "285101000444",
+        "passport_number": "QA55443322",
+        "date_of_birth": "1985-10-10",
+        "nationality": "Qatari",
+        "country_of_residence": "Qatar",
+        "city": "Doha",
+        "address": "West Bay Tower Floor 30",
+        "phone": "+974-6666-7777",
+        "email": "maryam.q@investment.qa",
+        "occupation": "Investment Manager",
+        "employer": "Qatar Investment Authority",
+        "position": "Senior Manager",
+        "shareholding_percentage": "5.5",
+        "account_status": "Active",
+        "risk_level": "Medium",
+        "last_review_date": "2024-06-30",
+        "notes": "5.5% shareholder"
+    },
+    {
+        "entity_type": "Shareholder",
+        "entity_category": "Corporate",
+        "customer_id": "KSHA-002",
+        "name_english": "Qatari Consulting Group",  # EXACT MATCH with blacklist company
+        "name_arabic": "مجموعة القطري للاستشارات",
+        "civil_id": "",
+        "registration_number": "QFC-12121-2010",
+        "date_of_incorporation": "2010-03-15",
+        "nationality": "Qatari",
+        "country_of_residence": "Qatar",
+        "city": "Doha",
+        "address": "Lusail Marina Tower",
+        "phone": "+974-5050-6060",
+        "email": "info@qatariconsulting.qa",
+        "industry": "Consulting",
+        "business_type": "Advisory Services",
+        "shareholding_percentage": "8.2",
+        "account_status": "Active",
+        "risk_level": "High",
+        "last_review_date": "2024-05-01",
+        "notes": "8.2% shareholder - managed by Tariq Hamad Al-Qatari",
+        "beneficial_owner": "Tariq Hamad Al-Qatari"
+    },
+    
+    # ============== CLEAN ENTITIES (No matches) ==============
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-100",
+        "name_english": "John Smith",
+        "name_arabic": "",
+        "civil_id": "123456789012",
+        "passport_number": "US12345678",
+        "date_of_birth": "1985-06-15",
+        "nationality": "American",
+        "country_of_residence": "Kuwait",
+        "city": "Kuwait City",
+        "address": "Salmiya Block 5 Apt 10",
+        "phone": "+965-9999-0000",
+        "email": "john.smith@email.com",
+        "occupation": "Engineer",
+        "employer": "Oil Company",
+        "position": "Senior Engineer",
+        "account_status": "Active",
+        "risk_level": "Low",
+        "onboarding_date": "2022-01-15",
+        "last_review_date": "2024-01-15",
+        "notes": ""
+    },
+    {
+        "entity_type": "Client",
+        "entity_category": "Individual",
+        "customer_id": "KCLI-101",
+        "name_english": "Maria Garcia",
+        "name_arabic": "",
+        "civil_id": "987654321098",
+        "passport_number": "ES98765432",
+        "date_of_birth": "1990-03-20",
+        "nationality": "Spanish",
+        "country_of_residence": "Kuwait",
+        "city": "Hawalli",
+        "address": "Block 3 Apt 25",
+        "phone": "+965-8888-7777",
+        "email": "maria.g@email.com",
+        "occupation": "Teacher",
+        "employer": "International School",
+        "position": "Teacher",
+        "account_status": "Active",
+        "risk_level": "Low",
+        "onboarding_date": "2021-08-01",
+        "last_review_date": "2024-02-01",
+        "notes": ""
+    },
+    {
+        "entity_type": "Vendor",
+        "entity_category": "Corporate",
+        "customer_id": "KVEN-100",
+        "name_english": "Global Tech Solutions",
+        "name_arabic": "حلول التقنية العالمية",
+        "civil_id": "",
+        "registration_number": "CR-99999-2019",
+        "date_of_incorporation": "2019-07-01",
+        "nationality": "Kuwaiti",
+        "country_of_residence": "Kuwait",
+        "city": "Kuwait City",
+        "address": "Free Trade Zone Building 10",
+        "phone": "+965-1800-TECH",
+        "email": "info@globaltech.kw",
+        "industry": "Technology",
+        "business_type": "IT Services",
+        "account_status": "Active",
+        "risk_level": "Low",
+        "onboarding_date": "2020-01-15",
+        "last_review_date": "2024-01-15",
+        "notes": "",
+        "beneficial_owner": ""
+    },
+]
+
+# Field weights for matching algorithm
+MATCHING_WEIGHTS = {
+    "name_english": 30,      # Most important - 30%
+    "name_arabic": 25,       # Very important - 25%
+    "civil_id": 20,          # Important identifier - 20%
+    "passport_number": 10,   # Secondary identifier - 10%
+    "date_of_birth": 10,     # Verification field - 10%
+    "nationality": 5,        # Supporting field - 5%
+}
+
+# Match type descriptions
+MATCH_TYPES = {
+    "EXACT": "Exact Match - All key fields match perfectly",
+    "HIGH": "High Confidence - Name and ID match",
+    "MEDIUM": "Medium Confidence - Name similar, some IDs match",
+    "LOW": "Low Confidence - Partial name match, different IDs",
+    "POTENTIAL": "Potential Match - Some fields similar, needs review"
+}
+
+
+def get_kamco_entities():
+    """
+    Get all KAMCO entities from seed data.
+    Converts entity_type to standardized format.
+    
+    Returns:
+        List of entity dictionaries with standardized fields
+    """
+    entities = []
+    for entity in KAMCO_ENTITIES:
+        # Standardize entity type to uppercase
+        entity_type = entity.get('entity_type', 'OTHER')
+        if entity_type.lower() == 'client':
+            entity_type = 'CLIENT'
+        elif entity_type.lower() == 'vendor':
+            entity_type = 'VENDOR'
+        elif entity_type.lower() == 'staff':
+            entity_type = 'STAFF'
+        else:
+            entity_type = 'OTHER'
+        
+        entities.append({
+            'id': entity.get('customer_id', ''),
+            'type': entity_type,
+            'name_english': entity.get('name_english', ''),
+            'name_arabic': entity.get('name_arabic', ''),
+            'civil_id': entity.get('civil_id', ''),
+            'passport_number': entity.get('passport_number', ''),
+            'date_of_birth': entity.get('date_of_birth', ''),
+            'nationality': entity.get('nationality', ''),
+            'country_of_residence': entity.get('country_of_residence', ''),
+            'city': entity.get('city', ''),
+            'address': entity.get('address', ''),
+            'phone': entity.get('phone', ''),
+            'email': entity.get('email', ''),
+            'occupation': entity.get('occupation', ''),
+            'employer': entity.get('employer', ''),
+            'position': entity.get('position', ''),
+            'account_status': entity.get('account_status', ''),
+            'risk_level': entity.get('risk_level', ''),
+            'onboarding_date': entity.get('onboarding_date', ''),
+            'last_review_date': entity.get('last_review_date', ''),
+            'notes': entity.get('notes', '')
+        })
+    
+    return entities

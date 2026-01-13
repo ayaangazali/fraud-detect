@@ -23,6 +23,7 @@ from utils.auth import (
 )
 from utils.audit_service import AuditService
 from models.audit_schema import AuditEventType, AuditSeverity
+from utils.security import login_rate_limiter, sanitize_username
 
 router = APIRouter()
 
@@ -185,22 +186,45 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
     audit_service = AuditService(db)
     ip_address = req.client.host if req.client else "Unknown"
     
+    # Sanitize username to prevent injection attacks
+    sanitized_username = sanitize_username(request.username)
+    
+    # Check rate limiting
+    if login_rate_limiter.is_locked(sanitized_username):
+        lockout_time = login_rate_limiter.get_lockout_time_remaining(sanitized_username)
+        audit_service.log_security_event(
+            event_type=AuditEventType.AUTH_FAILED,
+            action=f"Rate limit exceeded for username: {sanitized_username}",
+            username=sanitized_username,
+            ip_address=ip_address,
+            success=False,
+            error_message=f"Account temporarily locked due to too many failed attempts"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Too many failed login attempts. Account locked for {lockout_time} seconds. Please try again later."
+        )
+    
     # Authenticate user
-    user = authenticate_user(db, request.username, request.password)
+    user = authenticate_user(db, sanitized_username, request.password)
     
     if not user:
+        # Record failed attempt for rate limiting
+        login_rate_limiter.record_failed_attempt(sanitized_username)
+        remaining = login_rate_limiter.get_remaining_attempts(sanitized_username)
+        
         # Log failed login attempt
         audit_service.log_security_event(
             event_type=AuditEventType.AUTH_FAILED,
-            action=f"Failed login attempt for username: {request.username}",
-            username=request.username,
+            action=f"Failed login attempt for username: {sanitized_username} ({remaining} attempts remaining)",
+            username=sanitized_username,
             ip_address=ip_address,
             success=False,
             error_message="Incorrect username or password"
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail=f"Incorrect username or password. {remaining} attempts remaining before account lockout.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -223,6 +247,9 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
     # Update last login
     user.last_login = datetime.now(timezone.utc)
     db.commit()
+    
+    # Reset rate limiter on successful login
+    login_rate_limiter.reset_attempts(sanitized_username)
     
     # Create tokens
     token_data = {

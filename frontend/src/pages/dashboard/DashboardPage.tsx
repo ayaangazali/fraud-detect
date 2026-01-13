@@ -164,15 +164,15 @@ const Dashboard: React.FC = () => {
                 {user?.role === 'screener' && (
                   <>
                     <button className="w-full text-left px-4 py-3 rounded-lg border hover:bg-muted transition-colors">
-                      <p className="font-medium text-sm">Upload Customer File</p>
+                      <p className="font-medium text-sm">Upload Blacklist File</p>
                       <p className="text-xs text-muted-foreground">
-                        Start a new screening process
+                        Screen blacklist against KAMCO entities
                       </p>
                     </button>
                     <button className="w-full text-left px-4 py-3 rounded-lg border hover:bg-muted transition-colors">
-                      <p className="font-medium text-sm">View Queue</p>
+                      <p className="font-medium text-sm">View Screening Results</p>
                       <p className="text-xs text-muted-foreground">
-                        Review pending screenings
+                        Review potential matches found
                       </p>
                     </button>
                   </>

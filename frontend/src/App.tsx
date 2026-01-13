@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import UploadPage from './pages/screening/UploadPage';
 import ScreeningQueuePage from './pages/screening/ScreeningQueuePage';
+import BlacklistScreeningPage from './pages/screening/BlacklistScreeningPage';
 import CheckerReviewPage from './pages/review/CheckerReviewPage';
 import FinalizerReviewPage from './pages/review/FinalizerReviewPage';
 import ReportsPage from './pages/reports/ReportsPage';
@@ -70,6 +71,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute requireRole="screener">
                 <ScreeningQueuePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/screener/blacklist-screening"
+            element={
+              <ProtectedRoute requireRole="screener">
+                <BlacklistScreeningPage />
               </ProtectedRoute>
             }
           />
