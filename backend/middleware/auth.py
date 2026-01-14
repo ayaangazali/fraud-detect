@@ -42,7 +42,7 @@ def require_roles(allowed_roles: List[UserRole]):
 
 async def require_screener(current_user: User = Depends(get_current_active_user)) -> User:
     """
-    Dependency to require screener role
+    Dependency to require screener role (or admin)
     Screeners can: upload blacklists, run scans, flag items, undo flags
     
     Usage:
@@ -50,7 +50,7 @@ async def require_screener(current_user: User = Depends(get_current_active_user)
         async def scan(user: User = Depends(require_screener)):
             ...
     """
-    if current_user.role != UserRole.SCREENER:
+    if current_user.role not in [UserRole.SCREENER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Access denied. Screener role required. Your role: {current_user.role.value}"
@@ -60,7 +60,7 @@ async def require_screener(current_user: User = Depends(get_current_active_user)
 
 async def require_checker(current_user: User = Depends(get_current_active_user)) -> User:
     """
-    Dependency to require checker role
+    Dependency to require checker role (or admin)
     Checkers can: review flagged items, approve flags, request rechecks, assign items
     
     Usage:
@@ -68,7 +68,7 @@ async def require_checker(current_user: User = Depends(get_current_active_user))
         async def approve(user: User = Depends(require_checker)):
             ...
     """
-    if current_user.role != UserRole.CHECKER:
+    if current_user.role not in [UserRole.CHECKER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Access denied. Checker role required. Your role: {current_user.role.value}"
@@ -78,7 +78,7 @@ async def require_checker(current_user: User = Depends(get_current_active_user))
 
 async def require_finalizer(current_user: User = Depends(get_current_active_user)) -> User:
     """
-    Dependency to require finalizer role
+    Dependency to require finalizer role (or admin)
     Finalizers can: give final approval, override decisions, generate reports, view audit logs
     
     Usage:
@@ -86,7 +86,7 @@ async def require_finalizer(current_user: User = Depends(get_current_active_user
         async def final_approve(user: User = Depends(require_finalizer)):
             ...
     """
-    if current_user.role != UserRole.FINALIZER:
+    if current_user.role not in [UserRole.FINALIZER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Access denied. Finalizer role required. Your role: {current_user.role.value}"
@@ -96,7 +96,7 @@ async def require_finalizer(current_user: User = Depends(get_current_active_user
 
 async def require_checker_or_finalizer(current_user: User = Depends(get_current_active_user)) -> User:
     """
-    Dependency to require checker OR finalizer role
+    Dependency to require checker OR finalizer role (or admin)
     Useful for endpoints accessible to both supervisory roles
     
     Usage:
@@ -104,7 +104,7 @@ async def require_checker_or_finalizer(current_user: User = Depends(get_current_
         async def get_flagged(user: User = Depends(require_checker_or_finalizer)):
             ...
     """
-    if current_user.role not in [UserRole.CHECKER, UserRole.FINALIZER]:
+    if current_user.role not in [UserRole.CHECKER, UserRole.FINALIZER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Access denied. Checker or Finalizer role required. Your role: {current_user.role.value}"
@@ -114,7 +114,7 @@ async def require_checker_or_finalizer(current_user: User = Depends(get_current_
 
 async def require_screener_or_checker(current_user: User = Depends(get_current_active_user)) -> User:
     """
-    Dependency to require screener OR checker role
+    Dependency to require screener OR checker role (or admin)
     Useful for endpoints accessible to operational roles
     
     Usage:
@@ -122,7 +122,7 @@ async def require_screener_or_checker(current_user: User = Depends(get_current_a
         async def get_in_review(user: User = Depends(require_screener_or_checker)):
             ...
     """
-    if current_user.role not in [UserRole.SCREENER, UserRole.CHECKER]:
+    if current_user.role not in [UserRole.SCREENER, UserRole.CHECKER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Access denied. Screener or Checker role required. Your role: {current_user.role.value}"

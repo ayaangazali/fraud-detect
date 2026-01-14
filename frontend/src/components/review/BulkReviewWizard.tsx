@@ -168,7 +168,7 @@ const BulkReviewWizard: React.FC<BulkReviewWizardProps> = ({
       const response = await apiClient.post('/reviews/submit-bulk-wizard', reviewsToSubmit);
 
       if (response.data.success) {
-        toast.success(`Successfully reviewed ${response.data.processed} items`);
+        toast.success('Successfully reviewed ' + response.data.processed + ' items');
 
         // Generate reports if requested
         if (generateReports) {
@@ -178,11 +178,25 @@ const BulkReviewWizard: React.FC<BulkReviewWizardProps> = ({
         onReviewComplete?.();
         handleClose();
       } else {
-        toast.error(`${response.data.failed} items failed to process`);
+        toast.error(response.data.failed + ' items failed to process');
       }
     } catch (error: any) {
       console.error('Error submitting bulk reviews:', error);
-      toast.error(error.response?.data?.detail || 'Failed to submit reviews');
+      // Handle different error formats properly
+      let errorMessage = 'Failed to submit reviews';
+      if (error.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error array format
+          errorMessage = error.response.data.detail
+            .map((e: any) => (typeof e === 'string' ? e : e.msg || JSON.stringify(e)))
+            .join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          errorMessage = error.response.data.detail.msg || JSON.stringify(error.response.data.detail);
+        }
+      }
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

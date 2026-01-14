@@ -17,6 +17,7 @@ import EmailReportModal from '@/components/review/EmailReportModal';
 
 interface QueueItem {
   id: number;
+  match_id?: number;
   kamco_name: string;
   kamco_type: string;
   kamco_civil_id?: string;
@@ -35,7 +36,7 @@ interface QueueItem {
  * Screening Queue Page
  * 
  * This page displays screening matches from uploaded blacklist files.
- * Connected to: GET /api/screening/queue
+ * Connected to: GET /api/screening/v2/pending-matches
  */
 
 const ScreeningQueuePage: React.FC = () => {
@@ -62,10 +63,27 @@ const ScreeningQueuePage: React.FC = () => {
   const fetchScreeningQueue = async () => {
     setIsLoading(true);
     try {
-      const response = await apiClient.get('/screening/queue');
+      // Use V2 endpoint that reads from ScreeningMatch table
+      const response = await apiClient.get('/screening/v2/pending-matches');
       
-      if (response.data.success && response.data.queue) {
-        setQueueItems(response.data.queue);
+      if (response.data.success && (response.data.queue || response.data.matches)) {
+        // Map V2 response to QueueItem format
+        const matches = response.data.queue || response.data.matches || [];
+        const queueData: QueueItem[] = matches.map((match: any) => ({
+          id: match.match_id || match.id,
+          match_id: match.match_id || match.id,
+          kamco_name: match.kamco_name || 'Unknown',
+          kamco_type: match.kamco_type || 'Unknown',
+          kamco_civil_id: match.kamco_civil_id,
+          blacklist_name: match.blacklist_name || match.blacklist_name_english || 'Unknown',
+          blacklist_civil_id: match.blacklist_civil_id,
+          match_score: match.match_score || 0,
+          match_type: match.match_type || match.confidence || 'potential',
+          severity: match.severity || 'medium',
+          status: match.status || match.decision_status || 'pending',
+          flagged_at: match.flagged_at || match.screened_at,
+        }));
+        setQueueItems(queueData);
       } else {
         setQueueItems([]);
       }

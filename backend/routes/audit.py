@@ -31,7 +31,9 @@ logger = logging.getLogger(__name__)
 
 def require_admin(current_user: User = Depends(get_current_user)):
     """Require admin role for audit access"""
-    if current_user.role not in ["admin", "finalizer"]:
+    # Check role value - handle both enum and string comparisons
+    role_value = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if role_value not in ["admin", "finalizer"]:
         raise HTTPException(
             status_code=403,
             detail="Only administrators can access audit logs"

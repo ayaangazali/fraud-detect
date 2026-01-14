@@ -913,21 +913,29 @@ async def make_decision(
         
         previous_status = previous_decision.status if previous_decision else None
         
-        # Create decision log
+        # Create decision log with correct field names matching DecisionLog model
         decision = DecisionLog(
             match_id=request.match_id,
-            user_id=current_user.id,
-            status=decision_status,
-            notes=request.notes,
-            previous_status=previous_status,
-            is_re_review=match.is_re_review
+            match_key=match.match_key,
+            kamco_name=match.kamco_entity.name_english if match.kamco_entity else 'Unknown',
+            kamco_entity_type=match.kamco_entity.entity_type if match.kamco_entity else 'Unknown',
+            blacklist_reference=match.blacklist_reference,
+            blacklist_name=match.blacklist_name_english,
+            match_score=match.overall_score,
+            confidence=match.confidence,
+            decision=decision_status.name.lower(),
+            decision_by=current_user.id,
+            decision_by_username=current_user.username,
+            decision_by_role=current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
+            notes=request.notes
         )
         db.add(decision)
         
-        # Update match status
-        match.current_status = decision_status
-        match.last_decision_date = datetime.utcnow()
-        match.last_decision_by_id = current_user.id
+        # Update match status - use the correct field names from ScreeningMatch model
+        match.decision_status = decision_status.name.lower()
+        match.decision_date = datetime.utcnow()
+        match.decision_by = current_user.id
+        match.decision_notes = request.notes
         
         db.commit()
         db.refresh(decision)
@@ -961,6 +969,115 @@ async def make_decision(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to record decision: {str(e)}"
+        )
+
+
+class BulkDecisionRequest(BaseModel):
+    """Request for bulk decisions"""
+    match_ids: List[int] = Field(..., description="List of match IDs to process")
+    status: str = Field(..., description="Decision status: FLAGGED, CLEARED")
+    notes: Optional[str] = Field(None, description="Decision notes")
+
+
+@router.post("/v2/bulk-decision")
+async def bulk_decision(
+    request: BulkDecisionRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user)
+):
+    """
+    Make bulk decisions on multiple screening matches
+    
+    Allows users to apply the same decision to multiple matches at once.
+    """
+    if not SCREENING_V2_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Screening V2 models not available"
+        )
+    
+    try:
+        # Validate status
+        try:
+            decision_status = DecisionStatus[request.status.upper()]
+        except KeyError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {[s.name for s in DecisionStatus]}"
+            )
+        
+        success_count = 0
+        errors = []
+        
+        for match_id in request.match_ids:
+            try:
+                # Get the match
+                match = db.query(ScreeningMatch).filter(ScreeningMatch.id == match_id).first()
+                if not match:
+                    errors.append(f"Match {match_id} not found")
+                    continue
+                
+                # Create decision log with correct field names matching DecisionLog model
+                decision = DecisionLog(
+                    match_id=match_id,
+                    match_key=match.match_key,
+                    kamco_name=match.kamco_entity.name_english if match.kamco_entity else 'Unknown',
+                    kamco_entity_type=match.kamco_entity.entity_type if match.kamco_entity else 'Unknown',
+                    blacklist_reference=match.blacklist_reference,
+                    blacklist_name=match.blacklist_name_english,
+                    match_score=match.overall_score,
+                    confidence=match.confidence,
+                    decision=decision_status.name.lower(),
+                    decision_by=current_user.id,
+                    decision_by_username=current_user.username,
+                    decision_by_role=current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
+                    notes=request.notes
+                )
+                db.add(decision)
+                
+                # Update match status
+                match.decision_status = decision_status.name.lower()
+                match.decision_date = datetime.utcnow()
+                match.decision_by = current_user.id
+                match.decision_notes = request.notes
+                
+                success_count += 1
+                
+            except Exception as e:
+                errors.append(f"Error processing match {match_id}: {str(e)}")
+                continue
+        
+        db.commit()
+        
+        # Log action
+        log_action(
+            db=db,
+            user_id=current_user.id,
+            action=f"BULK_SCREENING_DECISION_{decision_status.name}",
+            details=f"Bulk decision '{decision_status.name}' on {success_count} matches",
+            metadata={
+                'match_ids': request.match_ids,
+                'status': decision_status.name,
+                'success_count': success_count,
+                'error_count': len(errors)
+            }
+        )
+        
+        return {
+            'success': True,
+            'message': f"Processed {success_count} of {len(request.match_ids)} matches",
+            'success_count': success_count,
+            'error_count': len(errors),
+            'errors': errors if errors else None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process bulk decision: {str(e)}"
         )
 
 
@@ -1111,15 +1228,43 @@ async def get_pending_matches(
         
         results = []
         for match in matches:
+            # Get Kamco entity details
+            kamco_entity = match.kamco_entity
+            kamco_name = kamco_entity.name_english if kamco_entity else 'Unknown'
+            kamco_type = kamco_entity.entity_type if kamco_entity else 'Unknown'
+            kamco_civil_id = kamco_entity.civil_id if kamco_entity else None
+            
+            # Determine severity based on score and risk level
+            score = match.overall_score or 0
+            risk_level = match.blacklist_risk_level or 'MEDIUM'
+            if score >= 90 or risk_level == 'HIGH':
+                severity = 'critical'
+            elif score >= 75:
+                severity = 'high'
+            elif score >= 50:
+                severity = 'medium'
+            else:
+                severity = 'low'
+            
             results.append({
                 'match_id': match.id,
                 'match_key': match.match_key,
                 'upload_id': match.blacklist_upload_id,
                 'kamco_entity_id': match.kamco_entity_id,
+                # Kamco entity details
+                'kamco_name': kamco_name,
+                'kamco_type': kamco_type,
+                'kamco_civil_id': kamco_civil_id,
+                # Blacklist details
+                'blacklist_name': match.blacklist_name_english or match.blacklist_name_arabic or 'Unknown',
                 'blacklist_name_english': match.blacklist_name_english,
                 'blacklist_name_arabic': match.blacklist_name_arabic,
                 'blacklist_reference': match.blacklist_reference,
-                'match_score': match.overall_score,
+                'blacklist_civil_id': match.blacklist_civil_id,
+                # Match details
+                'match_score': round(score * 100) if score <= 1 else round(score),  # Convert to percentage if needed
+                'match_type': match.confidence or 'potential',
+                'severity': severity,
                 'score_breakdown': {
                     'name_english': match.name_english_score,
                     'name_arabic': match.name_arabic_score,
@@ -1129,12 +1274,15 @@ async def get_pending_matches(
                 'confidence': match.confidence,
                 'is_re_review': match.is_re_review,
                 'decision_status': match.decision_status,
-                'screened_at': match.screened_at.isoformat() if match.screened_at else None
+                'status': match.decision_status,  # Alias for frontend compatibility
+                'screened_at': match.screened_at.isoformat() if match.screened_at else None,
+                'flagged_at': match.screened_at.isoformat() if match.screened_at else None,  # Alias
             })
         
         return {
             'success': True,
             'matches': results,
+            'queue': results,  # Alias for ScreeningQueuePage compatibility
             'count': len(results)
         }
         

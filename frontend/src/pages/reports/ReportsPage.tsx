@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { FileText, Download, TrendingUp, BarChart3 } from 'lucide-react';
+import { FileText, Download, TrendingUp, BarChart3, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '@/services/apiClient';
 
@@ -23,10 +23,11 @@ interface ReportData {
 
 const ReportsPage: React.FC = () => {
   const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState('2026-01-07');
+  const [endDate, setEndDate] = useState('2026-01-13');
   const [complianceData, setComplianceData] = useState<ReportData | null>(null);
   const [screeningData, setScreeningData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     fetchReportData();
@@ -35,7 +36,6 @@ const ReportsPage: React.FC = () => {
   const fetchReportData = async () => {
     setIsLoading(true);
     try {
-      // Fetch multiple report types
       const [complianceRes, screeningRes] = await Promise.all([
         apiClient.get('/reports/compliance'),
         apiClient.get('/reports/screening-summary'),
@@ -50,7 +50,6 @@ const ReportsPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error fetching report data:', error);
-      
       if (error.response?.status !== 403) {
         toast.error('Failed to load report data');
       }
@@ -60,33 +59,99 @@ const ReportsPage: React.FC = () => {
   };
 
   const handleGeneratePDF = async () => {
+    setIsGenerating(true);
     try {
       toast('Generating PDF report...', { icon: '📄' });
-      // TODO: Call generate endpoint with PDF format
-      // await apiClient.post('/reports/generate', { report_type: 'compliance_audit', report_format: 'pdf' });
-      toast.success('PDF report will be ready soon');
-    } catch (error) {
-      toast.error('Failed to generate PDF');
+      
+      const response = await apiClient.post('/reports/generate', {
+        report_type: 'screening_summary',
+        report_format: 'pdf',
+        title: 'Screening Summary Report',
+        filters: {
+          date_from: startDate,
+          date_to: endDate
+        }
+      });
+      
+      if (response.data.download_url) {
+        // Trigger download
+        const downloadUrl = 'http://localhost:8000/api' + response.data.download_url;
+        window.open(downloadUrl, '_blank');
+        toast.success('PDF report generated successfully!');
+      } else {
+        toast.success('PDF report generated!');
+      }
+    } catch (error: any) {
+      console.error('Error generating PDF:', error);
+      let errorMsg = 'Failed to generate PDF';
+      if (error.response?.data?.detail) {
+        errorMsg = typeof error.response.data.detail === 'string' 
+          ? error.response.data.detail 
+          : 'Report generation failed';
+      }
+      toast.error(errorMsg);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   const handleGenerateExcel = async () => {
+    setIsGenerating(true);
     try {
       toast('Generating Excel report...', { icon: '📊' });
-      // TODO: Call generate endpoint with Excel format
-      toast.success('Excel report will be ready soon');
-    } catch (error) {
+      
+      const response = await apiClient.post('/reports/generate', {
+        report_type: 'screening_summary',
+        report_format: 'excel',
+        title: 'Screening Summary Report',
+        filters: {
+          date_from: startDate,
+          date_to: endDate
+        }
+      });
+      
+      if (response.data.download_url) {
+        const downloadUrl = 'http://localhost:8000/api' + response.data.download_url;
+        window.open(downloadUrl, '_blank');
+        toast.success('Excel report generated successfully!');
+      } else {
+        toast.success('Excel report generated!');
+      }
+    } catch (error: any) {
+      console.error('Error generating Excel:', error);
       toast.error('Failed to generate Excel');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   const handleGenerateCSV = async () => {
+    setIsGenerating(true);
     try {
       toast('Generating CSV report...', { icon: '📋' });
-      // TODO: Call generate endpoint with CSV format
-      toast.success('CSV report will be ready soon');
-    } catch (error) {
+      
+      const response = await apiClient.post('/reports/generate', {
+        report_type: 'screening_summary',
+        report_format: 'csv',
+        title: 'Screening Summary Report',
+        filters: {
+          date_from: startDate,
+          date_to: endDate
+        }
+      });
+      
+      if (response.data.download_url) {
+        const downloadUrl = 'http://localhost:8000/api' + response.data.download_url;
+        window.open(downloadUrl, '_blank');
+        toast.success('CSV report generated successfully!');
+      } else {
+        toast.success('CSV report generated!');
+      }
+    } catch (error: any) {
+      console.error('Error generating CSV:', error);
       toast.error('Failed to generate CSV');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -95,21 +160,21 @@ const ReportsPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-[#0B5394]">Reports & Analytics</h1>
             <p className="text-muted-foreground">
               Generate and download compliance reports
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleGeneratePDF} variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
+            <Button onClick={handleGeneratePDF} variant="outline" disabled={isGenerating} className="border-[#0B5394]/30 hover:bg-[#0B5394]/5">
+              {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
               Generate PDF
             </Button>
-            <Button onClick={handleGenerateExcel} variant="outline">
+            <Button onClick={handleGenerateExcel} variant="outline" disabled={isGenerating} className="border-[#0B5394]/30 hover:bg-[#0B5394]/5">
               <Download className="mr-2 h-4 w-4" />
               Generate Excel
             </Button>
-            <Button onClick={handleGenerateCSV} variant="outline">
+            <Button onClick={handleGenerateCSV} variant="outline" disabled={isGenerating} className="border-[#0B5394]/30 hover:bg-[#0B5394]/5">
               <Download className="mr-2 h-4 w-4" />
               Generate CSV
             </Button>
@@ -117,9 +182,9 @@ const ReportsPage: React.FC = () => {
         </div>
 
         {/* Date Range Filter */}
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Report Period</CardTitle>
+            <CardTitle className="text-[#0B5394]">Report Period</CardTitle>
             <CardDescription>Select date range for reports</CardDescription>
           </CardHeader>
           <CardContent>
@@ -131,6 +196,7 @@ const ReportsPage: React.FC = () => {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  className="border-gray-200 focus:border-[#0B5394]"
                 />
               </div>
               <div className="space-y-2">

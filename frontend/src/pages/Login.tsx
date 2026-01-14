@@ -59,54 +59,54 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <Card className="w-full max-w-md shadow-lg border-0">
         <CardHeader className="space-y-1 pb-6">
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-primary text-primary-foreground p-4 rounded-full shadow-lg">
-              <Shield className="h-8 w-8" />
-            </div>
+            {/* KAMCO Invest Logo */}
+            <img 
+              src="/kamco-logo.svg" 
+              alt="KAMCO Invest" 
+              className="h-16 w-auto"
+            />
           </div>
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            KAMCO Compliance
-          </CardTitle>
-          <CardDescription className="text-center text-base">
-            AML/KYC Screening System
+          <CardDescription className="text-center text-base text-gray-600">
+            AML/KYC Compliance Screening System
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-gray-700">Username</Label>
               <Input
                 id="username"
                 type="text"
                 placeholder="Enter your username"
                 {...register('username')}
                 disabled={isLoading}
-                className="h-11"
+                className="h-11 border-gray-200 focus:border-[#0B5394] focus:ring-[#0B5394]/20"
               />
               {errors.username && (
-                <p className="text-sm text-destructive">{errors.username.message}</p>
+                <p className="text-sm text-red-500">{errors.username.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">Password</Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="Enter your password"
                 {...register('password')}
                 disabled={isLoading}
-                className="h-11"
+                className="h-11 border-gray-200 focus:border-[#0B5394] focus:ring-[#0B5394]/20"
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-red-500">{errors.password.message}</p>
               )}
             </div>
 
-            <Button type="submit" className="w-full h-11 text-base" disabled={isLoading}>
+            <Button type="submit" className="w-full h-11 text-base bg-[#0B5394] hover:bg-[#094478]" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -121,20 +121,20 @@ const Login: React.FC = () => {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm font-medium text-center mb-3">Demo Credentials</p>
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-sm font-medium text-center mb-3 text-gray-700">Demo Credentials</p>
             <div className="grid grid-cols-1 gap-2 text-xs">
-              <div className="p-2 bg-background rounded border">
-                <p className="font-semibold text-green-600">Screener</p>
-                <p className="text-muted-foreground">screener@kamco.com / Screener123</p>
+              <div className="p-2 bg-white rounded border border-gray-100">
+                <p className="font-semibold text-[#0B5394]">Screener</p>
+                <p className="text-gray-500">screener_test / ScreenerPass123!</p>
               </div>
-              <div className="p-2 bg-background rounded border">
-                <p className="font-semibold text-orange-600">Checker</p>
-                <p className="text-muted-foreground">checker@kamco.com / Checker123</p>
+              <div className="p-2 bg-white rounded border border-gray-100">
+                <p className="font-semibold text-[#0B5394]">Checker</p>
+                <p className="text-gray-500">checker_test / CheckerPass123!</p>
               </div>
-              <div className="p-2 bg-background rounded border">
-                <p className="font-semibold text-purple-600">Finalizer</p>
-                <p className="text-muted-foreground">finalizer@kamco.com / Finalizer123</p>
+              <div className="p-2 bg-white rounded border border-gray-100">
+                <p className="font-semibold text-[#0B5394]">Finalizer</p>
+                <p className="text-gray-500">finalizer_test / FinalizerPass123!</p>
               </div>
             </div>
           </div>

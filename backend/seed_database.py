@@ -40,6 +40,12 @@ def seed_database():
         
         users_data = [
             {
+                "username": "admin",
+                "email": "admin@kamco.com",
+                "password": "Admin123",
+                "role": UserRole.ADMIN
+            },
+            {
                 "username": "screener_test",
                 "email": "screener@kamco.com",
                 "password": "Screener123",
@@ -78,8 +84,9 @@ def seed_database():
             print(f"✅ User {i+1}: {user.email} ({user.role.value}) - ID: {user.id}")
         
         print(f"\n📧 Login Credentials:")
-        print(f"   Screener: screener@kamco.com / Screener123")
-        print(f"   Checker:  checker@kamco.com / Checker123")
+        print(f"   Admin:     admin@kamco.com / Admin123 (FULL ACCESS)")
+        print(f"   Screener:  screener@kamco.com / Screener123")
+        print(f"   Checker:   checker@kamco.com / Checker123")
         print(f"   Finalizer: finalizer@kamco.com / Finalizer123")
         
         # ============================================================

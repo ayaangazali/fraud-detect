@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '@/services/apiClient';
 
@@ -40,14 +40,21 @@ const BulkReviewModal: React.FC<BulkReviewModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const response = await apiClient.post('/reviews/review/bulk', {
-        item_ids: selectedItems,
-        decision,
+      // Map frontend decision to V2 API status
+      const statusMap: Record<string, string> = {
+        'approved': 'CLEARED',
+        'rejected': 'FLAGGED',
+      };
+
+      // Use V2 bulk-decision endpoint
+      const response = await apiClient.post('/screening/v2/bulk-decision', {
+        match_ids: selectedItems,
+        status: statusMap[decision] || decision.toUpperCase(),
         notes: notes.trim(),
       });
 
       if (response.data.success) {
-        toast.success(`${selectedItems.length} items ${decision} successfully`);
+        toast.success(`${response.data.success_count} items ${decision === 'approved' ? 'cleared' : 'flagged'} successfully`);
         onReviewComplete?.();
         handleClose();
       } else {
@@ -55,7 +62,19 @@ const BulkReviewModal: React.FC<BulkReviewModalProps> = ({
       }
     } catch (error: any) {
       console.error('Error submitting bulk review:', error);
-      toast.error(error.response?.data?.detail || 'Failed to submit bulk review');
+      // Properly extract error message - handle validation error objects
+      let errorMessage = 'Failed to submit bulk review';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail.map((e: any) => typeof e === 'string' ? e : e.msg || JSON.stringify(e)).join(', ');
+        } else if (typeof detail === 'object') {
+          errorMessage = detail.msg || JSON.stringify(detail);
+        }
+      }
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -99,20 +118,20 @@ const BulkReviewModal: React.FC<BulkReviewModalProps> = ({
               <Button
                 type="button"
                 variant={decision === 'approved' ? 'default' : 'outline'}
-                className={decision === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}
+                className={decision === 'approved' ? 'bg-red-600 hover:bg-red-700' : ''}
                 onClick={() => setDecision('approved')}
               >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Approve All
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Flag All
               </Button>
               <Button
                 type="button"
                 variant={decision === 'rejected' ? 'default' : 'outline'}
-                className={decision === 'rejected' ? 'bg-red-600 hover:bg-red-700' : ''}
+                className={decision === 'rejected' ? 'bg-green-600 hover:bg-green-700' : ''}
                 onClick={() => setDecision('rejected')}
               >
-                <XCircle className="mr-2 h-4 w-4" />
-                Reject All
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Clear All (Not Flagged)
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -128,17 +147,17 @@ const BulkReviewModal: React.FC<BulkReviewModalProps> = ({
                 <div className="text-sm">
                   {decision === 'approved' && (
                     <>
-                      <p className="font-medium text-blue-900">Approve All: Confirm Matches</p>
+                      <p className="font-medium text-blue-900">Flag All: Confirm Matches</p>
                       <p className="text-blue-700 mt-1">
-                        All selected items are confirmed matches. Document the common reason.
+                        All selected items are confirmed matches and will be flagged. Document the common reason.
                       </p>
                     </>
                   )}
                   {decision === 'rejected' && (
                     <>
-                      <p className="font-medium text-blue-900">Reject All: False Positives</p>
+                      <p className="font-medium text-blue-900">Clear All: False Positives</p>
                       <p className="text-blue-700 mt-1">
-                        All selected items are false positives. Explain the common pattern.
+                        All selected items are false positives and will be cleared. Explain the common pattern.
                       </p>
                     </>
                   )}
@@ -168,7 +187,7 @@ const BulkReviewModal: React.FC<BulkReviewModalProps> = ({
             <p className="text-sm font-medium">Summary</p>
             <p className="text-sm text-muted-foreground mt-1">
               {selectedItems.length} items will be marked as{' '}
-              <span className="font-semibold">{decision || '(not selected)'}</span>
+              <span className="font-semibold">{decision === 'approved' ? 'Flagged' : decision === 'rejected' ? 'Not Flagged (Cleared)' : '(not selected)'}</span>
             </p>
           </div>
         </div>

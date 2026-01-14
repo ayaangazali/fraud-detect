@@ -230,18 +230,18 @@ async def require_screener(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """
-    Dependency to require user to have Screener role
+    Dependency to require user to have Screener role (or Admin)
     
     Args:
         current_user: Current authenticated user
         
     Returns:
-        Current user if they have Screener role
+        Current user if they have Screener or Admin role
         
     Raises:
-        HTTPException: If user is not a Screener
+        HTTPException: If user is not a Screener or Admin
     """
-    if current_user.role != UserRole.SCREENER:
+    if current_user.role not in [UserRole.SCREENER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Screener role required for this action"
@@ -253,18 +253,18 @@ async def require_checker(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """
-    Dependency to require user to have Checker role
+    Dependency to require user to have Checker role (or Admin)
     
     Args:
         current_user: Current authenticated user
         
     Returns:
-        Current user if they have Checker role
+        Current user if they have Checker or Admin role
         
     Raises:
-        HTTPException: If user is not a Checker
+        HTTPException: If user is not a Checker or Admin
     """
-    if current_user.role != UserRole.CHECKER:
+    if current_user.role not in [UserRole.CHECKER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Checker role required for this action"
@@ -276,18 +276,18 @@ async def require_finalizer(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """
-    Dependency to require user to have Finalizer role
+    Dependency to require user to have Finalizer role (or Admin)
     
     Args:
         current_user: Current authenticated user
         
     Returns:
-        Current user if they have Finalizer role
+        Current user if they have Finalizer or Admin role
         
     Raises:
-        HTTPException: If user is not a Finalizer
+        HTTPException: If user is not a Finalizer or Admin
     """
-    if current_user.role != UserRole.FINALIZER:
+    if current_user.role not in [UserRole.FINALIZER, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Finalizer role required for this action"

@@ -2,12 +2,13 @@
 Pytest Configuration and Shared Fixtures
 """
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 import sys
 import os
+import httpx
+import asyncio
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -40,6 +41,46 @@ def db_session():
         Base.metadata.drop_all(bind=engine)
 
 
+class TestClient:
+    """Synchronous test client wrapper using httpx ASGITransport"""
+    def __init__(self, app):
+        self.app = app
+        self.base_url = "http://testserver"
+    
+    def _run_async(self, coro):
+        """Run async coroutine synchronously"""
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coro)
+    
+    async def _async_request(self, method, url, **kwargs):
+        transport = httpx.ASGITransport(app=self.app)
+        async with httpx.AsyncClient(transport=transport, base_url=self.base_url) as client:
+            if method == "GET":
+                return await client.get(url, **kwargs)
+            elif method == "POST":
+                return await client.post(url, **kwargs)
+            elif method == "PUT":
+                return await client.put(url, **kwargs)
+            elif method == "DELETE":
+                return await client.delete(url, **kwargs)
+    
+    def get(self, url, **kwargs):
+        return self._run_async(self._async_request("GET", url, **kwargs))
+    
+    def post(self, url, **kwargs):
+        return self._run_async(self._async_request("POST", url, **kwargs))
+    
+    def put(self, url, **kwargs):
+        return self._run_async(self._async_request("PUT", url, **kwargs))
+    
+    def delete(self, url, **kwargs):
+        return self._run_async(self._async_request("DELETE", url, **kwargs))
+
+
 @pytest.fixture(scope="function")
 def client(db_session):
     """Create a test client with overridden database dependency"""
@@ -50,7 +91,7 @@ def client(db_session):
             pass
     
     app.dependency_overrides[get_db] = override_get_db
-    test_client = TestClient(app, base_url="http://testserver")
+    test_client = TestClient(app)
     yield test_client
     app.dependency_overrides.clear()
 
@@ -76,6 +117,12 @@ def test_users(db_session):
             "email": "finalizer@kamco.com",
             "password": "Finalizer123",
             "role": UserRole.FINALIZER
+        },
+        {
+            "username": "admin_test",
+            "email": "admin@kamco.com",
+            "password": "Admin123",
+            "role": UserRole.ADMIN
         },
         {
             "username": "inactive_user",
@@ -172,3 +219,95 @@ def authenticated_finalizer(client, test_users):
         "refresh_token": data["refresh_token"],
         "headers": {"Authorization": f"Bearer {data['access_token']}"}
     }
+
+
+@pytest.fixture(scope="function")
+def authenticated_admin(client, test_users):
+    """Get authenticated admin with access token"""
+    admin = test_users["admin_test"]
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": admin["username"],
+            "password": admin["password"]
+        }
+    )
+    assert response.status_code == 200
+    data = response.json()
+    return {
+        "user": admin["user"],
+        "access_token": data["access_token"],
+        "refresh_token": data["refresh_token"],
+        "headers": {"Authorization": f"Bearer {data['access_token']}"}
+    }
+
+
+@pytest.fixture(scope="function")
+def seed_kamco_entities(db_session):
+    """Create sample Kamco entities for screening tests"""
+    try:
+        from models.screening import KamcoEntity
+        
+        entities_data = [
+            {
+                "customer_id": "KM001",
+                "name_english": "Ahmad Muhammad Al-Hassan",
+                "name_arabic": "أحمد محمد الحسن",
+                "civil_id": "123456789012",
+                "nationality": "Kuwait",
+                "entity_type": "CLIENT",
+                "entity_category": "Individual"
+            },
+            {
+                "customer_id": "KM002",
+                "name_english": "Global Trading Corporation Ltd",
+                "name_arabic": "شركة التجارة العالمية",
+                "civil_id": "987654321098",
+                "nationality": "UAE",
+                "entity_type": "VENDOR",
+                "entity_category": "Corporate"
+            },
+            {
+                "customer_id": "KM003",
+                "name_english": "Mohamed Ali Ibrahim",
+                "name_arabic": "محمد علي إبراهيم",
+                "civil_id": "456789012345",
+                "nationality": "Egypt",
+                "entity_type": "STAFF",
+                "entity_category": "Individual"
+            },
+            {
+                "customer_id": "KM004",
+                "name_english": "Fatima Al-Sabah",
+                "name_arabic": "فاطمة الصباح",
+                "civil_id": "321654987012",
+                "nationality": "Kuwait",
+                "entity_type": "CLIENT",
+                "entity_category": "Individual"
+            },
+            {
+                "customer_id": "KM005",
+                "name_english": "International Finance Partners",
+                "name_arabic": "شركاء التمويل الدولي",
+                "civil_id": "",
+                "nationality": "Saudi Arabia",
+                "entity_type": "VENDOR",
+                "entity_category": "Corporate"
+            }
+        ]
+        
+        entities = []
+        for data in entities_data:
+            entity = KamcoEntity(**data)
+            db_session.add(entity)
+            entities.append(entity)
+        
+        db_session.commit()
+        
+        # Refresh all entities
+        for entity in entities:
+            db_session.refresh(entity)
+        
+        return entities
+    except ImportError:
+        return []

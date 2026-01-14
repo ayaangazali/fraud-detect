@@ -245,7 +245,7 @@ const fetchCheckerQueue = async () => {
   - `blacklist_name`, `match_score`, `severity`
   - `flagged_by`, `flagged_at`
 - Loading states and empty state UI
-- Civil ID display for proper identification
+- Civil ID display for proper identification 
 - Severity badges and match type indicators
 
 **Status:** ✅ Fully Connected

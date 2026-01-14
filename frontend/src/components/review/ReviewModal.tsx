@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '@/services/apiClient';
 
@@ -53,17 +53,23 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, item, onRevi
     setIsSubmitting(true);
 
     try {
-      const payload: any = {
-        decision,
-        notes: notes.trim(),
+      // Map frontend decision to V2 API status
+      const statusMap: Record<string, string> = {
+        'approved': 'CLEARED',
+        'rejected': 'FLAGGED',
+        'escalated': 'ESCALATED'
       };
 
-      if (decision === 'escalated') {
-        payload.escalate_to_finalizer = true;
-        payload.escalation_notes = escalationReason.trim();
-      }
+      const payload = {
+        match_id: item.id,
+        status: statusMap[decision] || decision.toUpperCase(),
+        notes: decision === 'escalated' 
+          ? `${notes.trim()}\n\nEscalation Reason: ${escalationReason.trim()}`
+          : notes.trim(),
+      };
 
-      const response = await apiClient.post(`/reviews/review/${item.id}`, payload);
+      // Use V2 decision endpoint
+      const response = await apiClient.post('/screening/v2/decision', payload);
 
       if (response.data.success) {
         toast.success(`Item ${decision} successfully`);
@@ -155,20 +161,20 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, item, onRevi
               <Button
                 type="button"
                 variant={decision === 'approved' ? 'default' : 'outline'}
-                className={decision === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}
+                className={decision === 'approved' ? 'bg-red-600 hover:bg-red-700' : ''}
                 onClick={() => setDecision('approved')}
               >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Approve
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Flag
               </Button>
               <Button
                 type="button"
                 variant={decision === 'rejected' ? 'default' : 'outline'}
-                className={decision === 'rejected' ? 'bg-red-600 hover:bg-red-700' : ''}
+                className={decision === 'rejected' ? 'bg-green-600 hover:bg-green-700' : ''}
                 onClick={() => setDecision('rejected')}
               >
-                <XCircle className="mr-2 h-4 w-4" />
-                Reject
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Clear (Not Flagged)
               </Button>
               <Button
                 type="button"
@@ -176,7 +182,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, item, onRevi
                 className={decision === 'escalated' ? 'bg-orange-600 hover:bg-orange-700' : ''}
                 onClick={() => setDecision('escalated')}
               >
-                <AlertTriangle className="mr-2 h-4 w-4" />
+                <AlertCircle className="mr-2 h-4 w-4" />
                 Escalate
               </Button>
             </div>
@@ -190,15 +196,15 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, item, onRevi
                 <div className="text-sm">
                   {decision === 'approved' && (
                     <>
-                      <p className="font-medium text-blue-900">Approve: Confirm Match</p>
+                      <p className="font-medium text-blue-900">Flag: Confirm Match</p>
                       <p className="text-blue-700 mt-1">
-                        This entity matches the blacklist entry. Document the reason and any additional context.
+                        This entity matches the blacklist entry. It will be flagged and sent to checker for verification.
                       </p>
                     </>
                   )}
                   {decision === 'rejected' && (
                     <>
-                      <p className="font-medium text-blue-900">Reject: False Positive</p>
+                      <p className="font-medium text-blue-900">Clear: False Positive</p>
                       <p className="text-blue-700 mt-1">
                         This is not a true match. Explain why this is a false positive (e.g., different person, common name).
                       </p>
@@ -208,7 +214,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, item, onRevi
                     <>
                       <p className="font-medium text-blue-900">Escalate: Needs Senior Review</p>
                       <p className="text-blue-700 mt-1">
-                        This case requires additional expertise. Provide detailed context for the finalizer.
+                        This case requires additional expertise. Provide detailed context for the checker/finalizer.
                       </p>
                     </>
                   )}

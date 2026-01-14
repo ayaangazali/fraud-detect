@@ -94,21 +94,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-screen w-64 bg-card border-r transition-transform duration-300 lg:translate-x-0',
+          'fixed top-0 left-0 z-50 h-screen w-64 bg-white border-r border-gray-100 transition-transform duration-300 lg:translate-x-0 shadow-sm',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          {/* Header with Logo */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <div className="bg-primary text-primary-foreground p-2 rounded-lg">
-                <Shield className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-sm">KAMCO</h2>
-                <p className="text-xs text-muted-foreground">Compliance</p>
-              </div>
+              {/* KAMCO Invest Logo */}
+              <img 
+                src="/kamco-logo.svg" 
+                alt="KAMCO Invest" 
+                className="h-10 w-auto"
+              />
             </div>
             <Button
               variant="ghost"
@@ -116,21 +115,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               className="lg:hidden"
               onClick={onClose}
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 text-gray-500" />
             </Button>
           </div>
 
           {/* User info */}
-          <div className="p-4 border-b bg-muted/50">
+          <div className="p-4 border-b border-gray-100 bg-gray-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-semibold text-primary">
+              <div className="w-10 h-10 rounded-full bg-[#0B5394]/10 flex items-center justify-center">
+                <span className="text-sm font-semibold text-[#0B5394]">
                   {user?.username.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.username}</p>
-                <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{user?.username}</p>
+                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
               </div>
             </div>
           </div>
@@ -145,10 +144,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   to={item.href}
                   onClick={onClose}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'bg-[#0B5394] text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   )}
                 >
                   <item.icon className="h-5 w-5" />
@@ -160,18 +159,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t space-y-1">
+          <div className="p-4 border-t border-gray-100 space-y-1">
             <Link
               to="/settings"
               onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               <Settings className="h-5 w-5" />
               <span>Settings</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors w-full"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors w-full"
             >
               <LogOut className="h-5 w-5" />
               <span>Logout</span>

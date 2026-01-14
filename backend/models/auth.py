@@ -13,6 +13,7 @@ class UserRole(str, enum.Enum):
     SCREENER = "screener"
     CHECKER = "checker"
     FINALIZER = "finalizer"
+    ADMIN = "admin"  # Full access to all features
 
 class User(Base):
     """

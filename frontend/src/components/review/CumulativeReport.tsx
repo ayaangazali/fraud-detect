@@ -56,14 +56,48 @@ const CumulativeReport: React.FC<CumulativeReportProps> = ({ isOpen, onClose, on
     setIsLoading(true);
     try {
       const response = await apiClient.get('/reviews/report/cumulative');
-      if (response.data.success) {
-        setReport(response.data.report);
+      if (response.data.success && response.data.data) {
+        // Map backend response to frontend expected format
+        const backendData = response.data.data;
+        const mappedReport: CumulativeReportData = {
+          summary: {
+            total_items: backendData.summary?.total_flagged_items || 0,
+            pending: backendData.summary?.total_pending || 0,
+            approved: backendData.summary?.total_approved || 0,
+            rejected: backendData.summary?.total_rejected || 0,
+            escalated: backendData.summary?.total_escalated || 0,
+            approval_rate: backendData.summary?.approval_rate || 0,
+            rejection_rate: backendData.summary?.rejection_rate || 0,
+          },
+          by_severity: backendData.breakdowns?.by_severity || {},
+          by_type: backendData.breakdowns?.by_entity_type || {},
+          by_status: backendData.breakdowns?.by_status || {},
+          top_matches: backendData.top_matches || [],
+          reviewer_stats: backendData.reviewer_stats?.map((r: any) => ({
+            reviewer: r.reviewer_name,
+            reviewed: r.items_reviewed,
+            approved: 0,
+            rejected: 0,
+            escalated: 0,
+          })) || [],
+        };
+        setReport(mappedReport);
       } else {
         toast.error('Failed to load cumulative report');
       }
     } catch (error: any) {
       console.error('Error fetching cumulative report:', error);
-      toast.error(error.response?.data?.detail || 'Failed to load cumulative report');
+      // Handle error object properly
+      let errorMessage = 'Failed to load cumulative report';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (typeof detail === 'object') {
+          errorMessage = detail.msg || JSON.stringify(detail);
+        }
+      }
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

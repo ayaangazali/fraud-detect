@@ -36,6 +36,104 @@ class EmailReportRequest(BaseModel):
     include_summary: bool = True
     include_individual_reports: bool = True
 
+# ===== WORKFLOW QUEUE ENDPOINTS =====
+
+@router.get("/queue/screener")
+async def get_screener_queue(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get items pending screener review (initial review)
+    These are newly flagged items that haven't been reviewed yet
+    """
+    items = db.query(FlaggedItem).filter(
+        FlaggedItem.status == 'pending',
+        FlaggedItem.flagged_by_id == None  # Not yet reviewed by any screener
+    ).order_by(FlaggedItem.flagged_at.desc()).all()
+    
+    return {
+        "success": True,
+        "queue": [item.to_dict() for item in items],
+        "count": len(items)
+    }
+
+@router.get("/queue/checker")
+async def get_checker_queue(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get items pending checker review
+    These are items that screeners have flagged and sent for checker verification
+    """
+    items = db.query(FlaggedItem).filter(
+        FlaggedItem.status == 'checker_review'
+    ).order_by(FlaggedItem.flagged_at.desc()).all()
+    
+    return {
+        "success": True,
+        "queue": [item.to_dict() for item in items],
+        "count": len(items)
+    }
+
+@router.get("/queue/finalizer")
+async def get_finalizer_queue(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get items awaiting final approval
+    These are high-risk items that checkers have approved but need final sign-off
+    """
+    items = db.query(FlaggedItem).filter(
+        FlaggedItem.status == 'awaiting_final'
+    ).order_by(FlaggedItem.flagged_at.desc()).all()
+    
+    return {
+        "success": True,
+        "queue": [item.to_dict() for item in items],
+        "count": len(items)
+    }
+
+@router.get("/queue/my-queue")
+async def get_my_queue(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get items relevant to current user's role
+    """
+    user_role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    if user_role == 'screener':
+        # Screeners see pending items
+        items = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'pending'
+        ).order_by(FlaggedItem.flagged_at.desc()).all()
+    elif user_role == 'checker':
+        # Checkers see items screeners have flagged
+        items = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'checker_review'
+        ).order_by(FlaggedItem.flagged_at.desc()).all()
+    elif user_role == 'finalizer':
+        # Finalizers see items awaiting final approval
+        items = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'awaiting_final'
+        ).order_by(FlaggedItem.flagged_at.desc()).all()
+    else:
+        # Admins see everything pending
+        items = db.query(FlaggedItem).filter(
+            FlaggedItem.status.in_(['pending', 'checker_review', 'awaiting_final'])
+        ).order_by(FlaggedItem.flagged_at.desc()).all()
+    
+    return {
+        "success": True,
+        "queue": [item.to_dict() for item in items],
+        "count": len(items),
+        "role": user_role
+    }
+
 # ===== REVIEW ENDPOINTS =====
 
 @router.post("/review/{item_id}")
@@ -48,9 +146,14 @@ async def review_flagged_item(
     """
     Review a flagged item with decision and notes
     
+    Workflow based on user role:
+    - Screener: First review, flagged items go to checker
+    - Checker: Reviews screener's flags, can confirm or clear
+    - Finalizer: Final approval for high-risk items
+    
     Decisions:
-    - approved: Confirm the flag (entity is truly a match)
-    - rejected: Clear the flag (false positive)
+    - approved/flagged: Confirm the match
+    - rejected/cleared: Clear as false positive
     - escalated: Needs higher-level review
     """
     # Get flagged item
@@ -60,26 +163,94 @@ async def review_flagged_item(
     
     # Store previous status
     previous_status = item.status
+    user_role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
     
-    # Update based on decision
-    if review.decision == 'approved':
-        item.status = 'approved'
-        item.resolution_type = 'flagged'
+    # Process based on user role
+    if user_role == 'screener':
+        # Screener is the first reviewer
+        item.flagged_by_id = current_user.id
+        item.flagged_by = current_user.username
+        item.reviewed_at = datetime.now()
+        
+        if review.decision == 'approved':
+            # Screener flags item - goes to checker
+            item.status = 'checker_review'
+            item.resolution_type = 'flagged'
+            item.flag_reason = review.notes
+        elif review.decision == 'rejected':
+            # Screener clears as false positive
+            item.status = 'cleared'
+            item.resolution_type = 'cleared'
+            item.resolved_at = datetime.now()
+        elif review.decision == 'escalated':
+            # Screener escalates directly
+            item.status = 'escalated'
+            item.escalated_at = datetime.now()
+            item.escalation_level = 'checker'
+            
+    elif user_role == 'checker':
+        # Checker reviews screener's work
+        item.checker_id = current_user.id
+        item.checker_reviewed_at = datetime.now()
+        item.checker_notes = review.notes
+        
+        if review.decision == 'approved':
+            # Checker confirms the flag
+            if item.requires_compliance_approval or item.severity in ['high', 'critical']:
+                item.status = 'awaiting_final'
+            else:
+                item.status = 'approved'
+                item.resolved_at = datetime.now()
+            item.resolution_type = 'flagged'
+        elif review.decision == 'rejected':
+            # Checker clears (overrides screener)
+            item.status = 'cleared'
+            item.resolution_type = 'cleared'
+            item.resolved_at = datetime.now()
+        elif review.decision == 'escalated':
+            item.status = 'escalated'
+            item.escalated_at = datetime.now()
+            item.escalation_level = 'management'
+            
+    elif user_role == 'finalizer':
+        # Finalizer gives final approval
+        item.finalizer_id = current_user.id
+        item.finalizer_reviewed_at = datetime.now()
+        item.finalizer_notes = review.notes
+        
+        if review.decision == 'approved':
+            item.status = 'approved'
+            item.resolution_type = 'flagged'
+        elif review.decision == 'rejected':
+            item.status = 'cleared'
+            item.resolution_type = 'cleared'
         item.resolved_at = datetime.now()
-    elif review.decision == 'rejected':
-        item.status = 'rejected'
-        item.resolution_type = 'cleared'
-        item.resolved_at = datetime.now()
-    elif review.decision == 'escalated':
-        item.status = 'escalated'
-        item.escalated_at = datetime.now()
-        item.escalation_level = 'management'
     else:
-        raise HTTPException(status_code=400, detail="Invalid decision type")
+        # Admin or other roles
+        if review.decision == 'approved':
+            item.status = 'approved'
+            item.resolution_type = 'flagged'
+            item.resolved_at = datetime.now()
+        elif review.decision == 'rejected':
+            item.status = 'rejected'
+            item.resolution_type = 'cleared'
+            item.resolved_at = datetime.now()
+        elif review.decision == 'escalated':
+            item.status = 'escalated'
+            item.escalated_at = datetime.now()
+            item.escalation_level = 'management'
+        
+        item.reviewed_at = datetime.now()
+        item.checker_id = current_user.id
+        item.checker_notes = review.notes
     
-    # Update review info
-    item.reviewed_at = datetime.now()
-    item.checker_id = current_user.id
+    item.review_notes = review.notes  # Legacy field
+    
+    # Handle escalation
+    if review.requires_escalation:
+        item.requires_compliance_approval = True
+        item.compliance_notes = review.escalation_notes
+        item.escalation_level = 'compliance'
     item.checker_reviewed_at = datetime.now()
     item.checker_notes = review.notes
     item.review_notes = review.notes  # Legacy field
@@ -170,9 +341,17 @@ async def bulk_review(
 ):
     """
     Review multiple flagged items at once with the same decision
+    
+    Workflow:
+    - Screener: Reviews items, marks as 'flagged' (confirmed match) or 'cleared' (false positive)
+      - Flagged items automatically go to checker for review
+      - Cleared items are resolved
+    - Checker: Reviews screener's flagged items, confirms or overrides
+    - Finalizer: Final approval for high-risk items
     """
     updated_count = 0
     errors = []
+    user_role = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
     
     for item_id in request.item_ids:
         try:
@@ -181,28 +360,79 @@ async def bulk_review(
                 errors.append(f"Item {item_id} not found")
                 continue
             
-            # Update item
+            # Update item based on role and decision
             previous_status = item.status
             
-            if request.decision == 'approved':
-                item.status = 'approved'
-                item.resolution_type = 'flagged'
-            elif request.decision == 'rejected':
-                item.status = 'rejected'
-                item.resolution_type = 'cleared'
-            
-            item.reviewed_at = datetime.now()
-            item.checker_id = current_user.id
-            item.checker_notes = request.notes
-            item.resolved_at = datetime.now()
+            if user_role == 'screener':
+                # Screener is the first reviewer
+                item.flagged_by_id = current_user.id
+                item.flagged_by = current_user.username
+                item.reviewed_at = datetime.now()
+                
+                if request.decision == 'approved':
+                    # Screener confirms match - goes to checker for review
+                    item.status = 'checker_review'  # Pending checker review
+                    item.resolution_type = 'flagged'
+                    item.flag_reason = request.notes
+                elif request.decision == 'rejected':
+                    # Screener clears as false positive - resolved
+                    item.status = 'cleared'
+                    item.resolution_type = 'cleared'
+                    item.resolved_at = datetime.now()
+                    item.review_notes = request.notes
+                    
+            elif user_role == 'checker':
+                # Checker reviews screener's flagged items
+                item.checker_id = current_user.id
+                item.checker_reviewed_at = datetime.now()
+                item.checker_notes = request.notes
+                
+                if request.decision == 'approved':
+                    # Checker confirms the flag
+                    if item.requires_compliance_approval or item.severity in ['high', 'critical']:
+                        item.status = 'awaiting_final'  # Needs finalizer
+                    else:
+                        item.status = 'approved'
+                        item.resolved_at = datetime.now()
+                    item.resolution_type = 'flagged'
+                elif request.decision == 'rejected':
+                    # Checker overrides screener - clears the item
+                    item.status = 'cleared'
+                    item.resolution_type = 'cleared'
+                    item.resolved_at = datetime.now()
+                    
+            elif user_role == 'finalizer':
+                # Finalizer gives final approval
+                item.finalizer_id = current_user.id
+                item.finalizer_reviewed_at = datetime.now()
+                item.finalizer_notes = request.notes
+                
+                if request.decision == 'approved':
+                    item.status = 'approved'
+                    item.resolution_type = 'flagged'
+                elif request.decision == 'rejected':
+                    item.status = 'cleared'
+                    item.resolution_type = 'cleared'
+                item.resolved_at = datetime.now()
+            else:
+                # Admin or other roles - treat as checker
+                item.checker_id = current_user.id
+                item.checker_notes = request.notes
+                if request.decision == 'approved':
+                    item.status = 'approved'
+                    item.resolution_type = 'flagged'
+                elif request.decision == 'rejected':
+                    item.status = 'rejected'
+                    item.resolution_type = 'cleared'
+                item.resolved_at = datetime.now()
             
             # Log action
             log_action(
                 db=db,
                 user_id=current_user.id,
                 action=f"BULK_REVIEW_{request.decision.upper()}",
-                details=f"Bulk reviewed: {item.kamco_name}",
-                metadata={"item_id": item.id, "decision": request.decision}
+                details=f"Bulk reviewed: {item.kamco_name} (role: {user_role})",
+                metadata={"item_id": item.id, "decision": request.decision, "role": user_role}
             )
             
             updated_count += 1
@@ -212,12 +442,25 @@ async def bulk_review(
     
     db.commit()
     
+    # Provide feedback based on role
+    if user_role == 'screener':
+        flagged_count = len([r for r in request.item_ids if request.decision == 'approved'])
+        cleared_count = len([r for r in request.item_ids if request.decision == 'rejected'])
+        message = f"Reviewed {updated_count} items. "
+        if request.decision == 'approved':
+            message += f"Items sent to checker for review."
+        else:
+            message += f"Items cleared as false positives."
+    else:
+        message = f"Reviewed {updated_count} items"
+    
     return {
         "success": True,
-        "message": f"Reviewed {updated_count} items",
+        "message": message,
         "data": {
             "updated_count": updated_count,
-            "errors": errors
+            "errors": errors,
+            "role": user_role
         }
     }
 
@@ -797,17 +1040,19 @@ async def submit_bulk_wizard_reviews(
             item.checker_notes = notes
             item.reviewed_at = datetime.now()
             
-            # Log to logbook
+            # Log to logbook using the correct signature
             log_action(
                 db=db,
-                kamco_name=item.kamco_name,
-                kamco_type=item.kamco_type,
-                blacklist_name=item.blacklist_name,
-                match_score=item.match_score,
-                severity=item.severity,
-                decision=decision,
-                reviewed_by=current_user.username,
-                note=notes
+                user_id=current_user.id,
+                action=f"BULK_REVIEW_{decision.upper()}",
+                details=f"Bulk review: {item.kamco_name} vs {item.blacklist_name} - {decision}",
+                metadata={
+                    "item_id": item_id,
+                    "decision": decision,
+                    "kamco_name": item.kamco_name,
+                    "blacklist_name": item.blacklist_name,
+                    "notes": notes
+                }
             )
             
             db.commit()
