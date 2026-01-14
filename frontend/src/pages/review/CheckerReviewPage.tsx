@@ -1,318 +1,507 @@
 import React, { useState, useEffect } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, XCircle, RotateCcw, Clock, AlertTriangle } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Clock,
+  User,
+  FileText,
+  RefreshCw,
+  ChevronRight,
+  Shield,
+  AlertCircle,
+  Info,
+  ArrowLeftRight,
+  Target,
+  Hash,
+  Calendar,
+  Globe,
+  Building,
+  Phone,
+  Mail,
+  MapPin,
+  Briefcase,
+  CreditCard,
+} from 'lucide-react';
 import apiClient from '@/services/apiClient';
-import BulkReviewWizard from '@/components/review/BulkReviewWizard';
+
+interface KamcoDetails {
+  civil_id?: string;
+  nationality?: string;
+  dob?: string;
+  entity_category?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  occupation?: string;
+  employer?: string;
+  account_status?: string;
+  risk_level?: string;
+  onboarding_date?: string;
+}
+
+interface BlacklistDetails {
+  civil_id?: string;
+  nationality?: string;
+  dob?: string;
+  list_type?: string;
+  source?: string;
+  reason?: string;
+  risk_level?: string;
+}
+
+interface MatchDetails {
+  overall_score?: number;
+  name_english_score?: number;
+  name_arabic_score?: number;
+  civil_id_score?: number;
+  passport_score?: number;
+  dob_score?: number;
+  nationality_score?: number;
+  confidence?: string;
+  match_reasons?: string[];
+}
+
+interface KamcoData {
+  id?: number;
+  customer_id?: string;
+  name_english?: string;
+  name_arabic?: string;
+  civil_id?: string;
+  passport_number?: string;
+  date_of_birth?: string;
+  nationality?: string;
+  entity_type?: string;
+  entity_category?: string;
+  occupation?: string;
+  employer?: string;
+  country_of_residence?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  account_status?: string;
+  risk_level?: string;
+  onboarding_date?: string;
+}
+
+interface BlacklistData {
+  reference?: string;
+  name_english?: string;
+  name_arabic?: string;
+  civil_id?: string;
+  passport?: string;
+  nationality?: string;
+  date_of_birth?: string;
+  list_type?: string;
+  list_source?: string;
+  risk_level?: string;
+  reason?: string;
+}
 
 interface ReviewItem {
   id: number;
   kamco_name: string;
   kamco_type: string;
-  kamco_civil_id?: string;
+  kamco_id?: number;
   blacklist_name: string;
-  blacklist_civil_id?: string;
+  blacklist_source?: string;
   match_score: number;
   match_type: string;
   severity: string;
   status: string;
   flagged_by?: string;
-  created_at?: string;
+  flagged_at: string;
+  flag_reason?: string;
+  screener_notes?: string;
   notes?: string;
+  // Full comparison data from backend
+  kamco_data?: KamcoData;
+  blacklist_data?: BlacklistData;
+  match_details?: MatchDetails;
+  // Legacy fields for backward compatibility
+  kamco_details?: KamcoDetails;
+  blacklist_details?: BlacklistDetails;
 }
 
 const CheckerReviewPage: React.FC = () => {
+  const [items, setItems] = useState<ReviewItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<ReviewItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
-  const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [showBulkWizard, setShowBulkWizard] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'comparison' | 'scores' | 'details'>('comparison');
 
   useEffect(() => {
-    fetchCheckerQueue();
+    fetchQueue();
   }, []);
 
-  const fetchCheckerQueue = async () => {
-    setIsLoading(true);
+  const fetchQueue = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await apiClient.get('/review/checker/queue');
-      
-      if (response.data.success && response.data.queue) {
-        setReviewItems(response.data.queue);
-      } else {
-        setReviewItems([]);
+      const data = response.data;
+      // Backend returns { queue: [], data: [], count: N }
+      const queueItems = data.queue || data.items || data.data || [];
+      setItems(queueItems);
+      if (queueItems.length > 0 && !selectedItem) {
+        setSelectedItem(queueItems[0]);
       }
-    } catch (error: any) {
-      console.error('Error fetching checker queue:', error);
-      
-      if (error.response?.status !== 404) {
-        toast.error('Failed to load checker queue');
-      }
-      setReviewItems([]);
+    } catch (err: any) {
+      console.error('Failed to fetch queue:', err);
+      setError(err.response?.data?.detail || 'Failed to load review queue');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleApprove = () => {
+  const handleDecision = async (decision: 'approved' | 'rejected' | 'recheck') => {
     if (!selectedItem) return;
-    toast.success(`Case ${selectedItem.id} approved for clearance`);
-    setSelectedItem(null);
-    setReviewNotes('');
+
+    try {
+      setSubmitting(true);
+      await apiClient.post(`/review/checker/decision/${selectedItem.id}`, {
+        decision,
+        notes: reviewNotes,
+      });
+
+      const newItems = items.filter((i) => i.id !== selectedItem.id);
+      setItems(newItems);
+      setSelectedItem(newItems.length > 0 ? newItems[0] : null);
+      setReviewNotes('');
+    } catch (err: any) {
+      console.error('Failed to submit decision:', err);
+      setError(err.response?.data?.detail || 'Failed to submit decision');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleReject = () => {
-    if (!selectedItem) return;
-    toast.error(`Case ${selectedItem.id} rejected - escalated to finalizer`);
-    setSelectedItem(null);
-    setReviewNotes('');
+  const getSeverityColor = (severity: string) => {
+    switch (severity?.toLowerCase()) {
+      case 'critical': return 'bg-red-500 text-white';
+      case 'high': return 'bg-orange-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-black';
+      case 'low': return 'bg-blue-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
   };
 
-  const handleRecheck = () => {
-    if (!selectedItem) return;
-    toast.loading(`Case ${selectedItem.id} sent back for re-screening`);
-    setSelectedItem(null);
-    setReviewNotes('');
+  const getScoreColor = (score: number | undefined) => {
+    if (score === undefined) return 'text-gray-400';
+    if (score >= 90) return 'text-red-500 font-bold';
+    if (score >= 70) return 'text-orange-500 font-semibold';
+    if (score >= 50) return 'text-yellow-600';
+    return 'text-green-500';
   };
 
-  const toggleItemSelection = (itemId: number) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
+  const formatDate = (dateStr: string | undefined) => {
+    if (!dateStr) return 'N/A';
+    try { return new Date(dateStr).toLocaleDateString(); } 
+    catch { return dateStr; }
+  };
+
+  const getScreenerNotes = (item: ReviewItem): string => {
+    return item.screener_notes || item.flag_reason || item.notes || 'No screener notes provided';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2">Loading review queue...</span>
+      </div>
     );
-  };
+  }
 
-  const handleBulkReviewComplete = () => {
-    setSelectedItems([]);
-    setShowBulkWizard(false);
-    fetchCheckerQueue(); // Refresh the queue
-  };
+  if (error) {
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+        <Button variant="outline" size="sm" onClick={fetchQueue} className="ml-4">Retry</Button>
+      </Alert>
+    );
+  }
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="container mx-auto p-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Checker Review</h1>
-          <p className="text-muted-foreground">
-            Review flagged items and make clearance decisions
-          </p>
+          <h1 className="text-2xl font-bold">Checker Review Queue</h1>
+          <p className="text-muted-foreground">Review flagged items and make approval decisions</p>
         </div>
+        <Button variant="outline" onClick={fetchQueue} disabled={loading}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Review Queue */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Pending Review ({reviewItems.length})</CardTitle>
-                  <CardDescription>Items flagged by screeners</CardDescription>
-                </div>
-                {selectedItems.length > 0 && (
-                  <Button
-                    onClick={() => setShowBulkWizard(true)}
-                    className="ml-auto"
+      {items.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+            <h3 className="text-xl font-semibold">All Caught Up!</h3>
+            <p className="text-muted-foreground">No items pending checker review</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-12 gap-4">
+          {/* Queue List */}
+          <div className="col-span-4">
+            <Card className="h-[calc(100vh-200px)] overflow-auto">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center">
+                  <FileText className="w-5 h-5 mr-2" />
+                  Pending Items ({items.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => { setSelectedItem(item); setReviewNotes(''); }}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedItem?.id === item.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'}`}
                   >
-                    Review {selectedItems.length} Items
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{item.kamco_name}</p>
+                        <p className="text-sm text-muted-foreground truncate">vs {item.blacklist_name}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge className={getSeverityColor(item.severity)}>{item.severity}</Badge>
+                      <Badge variant="outline" className={getScoreColor(item.match_score)}>{item.match_score?.toFixed(1)}%</Badge>
+                    </div>
+                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      {formatDate(item.flagged_at)}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Review Details */}
+          <div className="col-span-8">
+            {selectedItem ? (
+              <div className="space-y-4">
+                {/* Header Card */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Shield className="w-5 h-5" />
+                          Match Review: {selectedItem.kamco_name}
+                        </CardTitle>
+                        <CardDescription>Matched against: {selectedItem.blacklist_name}</CardDescription>
+                      </div>
+                      <div className="flex gap-2">
+                        <Badge className={getSeverityColor(selectedItem.severity)}>{selectedItem.severity} Severity</Badge>
+                        <Badge variant="outline" className={getScoreColor(selectedItem.match_score)}>{selectedItem.match_score?.toFixed(1)}% Match</Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+
+                {/* Screener Notes */}
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <div className="ml-2">
+                    <p className="font-medium">Screener Notes</p>
+                    <p className="text-sm text-muted-foreground mt-1">{getScreenerNotes(selectedItem)}</p>
+                  </div>
+                </Alert>
+
+                {/* Tab Navigation */}
+                <div className="flex gap-2 border-b pb-2">
+                  <Button variant={activeTab === 'comparison' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('comparison')}>
+                    <ArrowLeftRight className="w-4 h-4 mr-2" />Comparison
                   </Button>
+                  <Button variant={activeTab === 'scores' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('scores')}>
+                    <Target className="w-4 h-4 mr-2" />Match Scores
+                  </Button>
+                  <Button variant={activeTab === 'details' ? 'default' : 'ghost'} size="sm" onClick={() => setActiveTab('details')}>
+                    <FileText className="w-4 h-4 mr-2" />Full Details
+                  </Button>
+                </div>
+
+                {/* Comparison Tab */}
+                {activeTab === 'comparison' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Kamco Entity */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Building className="w-4 h-4 text-blue-500" />Kamco Database
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2"><User className="w-4 h-4" /><span className="text-muted-foreground">Name:</span><span className="font-medium">{selectedItem.kamco_data?.name_english || selectedItem.kamco_name}</span></div>
+                        <div className="flex items-center gap-2"><Hash className="w-4 h-4" /><span className="text-muted-foreground">Type:</span><span>{selectedItem.kamco_data?.entity_type || selectedItem.kamco_type || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><CreditCard className="w-4 h-4" /><span className="text-muted-foreground">Civil ID:</span><span>{selectedItem.kamco_data?.civil_id || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Globe className="w-4 h-4" /><span className="text-muted-foreground">Nationality:</span><span>{selectedItem.kamco_data?.nationality || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Calendar className="w-4 h-4" /><span className="text-muted-foreground">DOB:</span><span>{formatDate(selectedItem.kamco_data?.date_of_birth)}</span></div>
+                        <hr className="my-2" />
+                        <div className="flex items-center gap-2"><MapPin className="w-4 h-4" /><span className="text-muted-foreground">City:</span><span>{selectedItem.kamco_data?.city || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Phone className="w-4 h-4" /><span className="text-muted-foreground">Phone:</span><span>{selectedItem.kamco_data?.phone || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Mail className="w-4 h-4" /><span className="text-muted-foreground">Email:</span><span>{selectedItem.kamco_data?.email || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Briefcase className="w-4 h-4" /><span className="text-muted-foreground">Occupation:</span><span>{selectedItem.kamco_data?.occupation || 'N/A'}</span></div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Blacklist Entry */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-500" />Blacklist Entry
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2"><User className="w-4 h-4" /><span className="text-muted-foreground">Name:</span><span className="font-medium">{selectedItem.blacklist_data?.name_english || selectedItem.blacklist_name}</span></div>
+                        <div className="flex items-center gap-2"><Hash className="w-4 h-4" /><span className="text-muted-foreground">List Type:</span><span>{selectedItem.blacklist_data?.list_type || selectedItem.match_type || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><CreditCard className="w-4 h-4" /><span className="text-muted-foreground">Civil ID:</span><span>{selectedItem.blacklist_data?.civil_id || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Globe className="w-4 h-4" /><span className="text-muted-foreground">Nationality:</span><span>{selectedItem.blacklist_data?.nationality || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2"><Calendar className="w-4 h-4" /><span className="text-muted-foreground">DOB:</span><span>{formatDate(selectedItem.blacklist_data?.date_of_birth)}</span></div>
+                        <hr className="my-2" />
+                        <div className="flex items-center gap-2"><FileText className="w-4 h-4" /><span className="text-muted-foreground">Source:</span><span>{selectedItem.blacklist_data?.list_source || selectedItem.blacklist_source || 'N/A'}</span></div>
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="text-muted-foreground">Risk:</span>
+                          <Badge variant="outline" className={selectedItem.blacklist_data?.risk_level === 'HIGH' ? 'border-red-500 text-red-500' : 'border-yellow-500 text-yellow-500'}>
+                            {selectedItem.blacklist_data?.risk_level || 'N/A'}
+                          </Badge>
+                        </div>
+                        <div className="mt-2 p-2 bg-red-50 rounded border border-red-200">
+                          <span className="text-muted-foreground">Reason: </span>
+                          {selectedItem.blacklist_data?.reason || 'No reason provided'}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Loading queue...
-                </div>
-              ) : reviewItems.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No items pending review
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {reviewItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`p-4 border rounded-lg transition-colors ${
-                        selectedItem?.id === item.id
-                          ? 'border-primary bg-primary/5'
-                          : 'hover:bg-muted/50'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(item.id)}
-                          onChange={() => toggleItemSelection(item.id)}
-                          className="mt-1 h-4 w-4 rounded border-gray-300"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <div 
-                          className="flex-1 cursor-pointer"
-                          onClick={() => setSelectedItem(item)}
-                        >
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <p className="font-medium">{item.kamco_name}</p>
-                              <Badge 
-                                variant={
-                                  item.severity === 'high' || item.severity === 'critical' 
-                                    ? 'destructive' 
-                                    : 'secondary'
-                                } 
-                                className="gap-1"
-                              >
-                                <AlertTriangle className="h-3 w-3" />
-                                {item.match_score}%
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              Match: {item.blacklist_name}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
-                              <span>•</span>
-                              <span>{item.severity} severity</span>
-                              <span>•</span>
-                              <span>{item.match_type}</span>
-                            </div>
+
+                {/* Match Scores Tab */}
+                {activeTab === 'scores' && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Match Score Breakdown</CardTitle>
+                      <CardDescription>Detailed analysis of why this match was flagged</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <div className="flex justify-between p-2 bg-muted rounded"><span>Overall Score</span><span className={`font-bold ${getScoreColor(selectedItem.match_details?.overall_score || selectedItem.match_score)}`}>{(selectedItem.match_details?.overall_score || selectedItem.match_score)?.toFixed(1)}%</span></div>
+                          <div className="flex justify-between p-2"><span>Name (English)</span><span className={getScoreColor(selectedItem.match_details?.name_english_score)}>{selectedItem.match_details?.name_english_score?.toFixed(1) || 'N/A'}%</span></div>
+                          <div className="flex justify-between p-2 bg-muted/50 rounded"><span>Name (Arabic)</span><span className={getScoreColor(selectedItem.match_details?.name_arabic_score)}>{selectedItem.match_details?.name_arabic_score?.toFixed(1) || 'N/A'}%</span></div>
+                          <div className="flex justify-between p-2"><span>Civil ID</span><span className={getScoreColor(selectedItem.match_details?.civil_id_score)}>{selectedItem.match_details?.civil_id_score?.toFixed(1) || 'N/A'}%</span></div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex justify-between p-2 bg-muted rounded"><span>Confidence</span><Badge variant="outline">{selectedItem.match_details?.confidence || 'N/A'}</Badge></div>
+                          <div className="flex justify-between p-2"><span>Passport</span><span className={getScoreColor(selectedItem.match_details?.passport_score)}>{selectedItem.match_details?.passport_score?.toFixed(1) || 'N/A'}%</span></div>
+                          <div className="flex justify-between p-2 bg-muted/50 rounded"><span>Date of Birth</span><span className={getScoreColor(selectedItem.match_details?.dob_score)}>{selectedItem.match_details?.dob_score?.toFixed(1) || 'N/A'}%</span></div>
+                          <div className="flex justify-between p-2"><span>Nationality</span><span className={getScoreColor(selectedItem.match_details?.nationality_score)}>{selectedItem.match_details?.nationality_score?.toFixed(1) || 'N/A'}%</span></div>
+                        </div>
+                      </div>
+                      {selectedItem.match_details?.match_reasons && selectedItem.match_details.match_reasons.length > 0 && (
+                        <div className="mt-4 pt-4 border-t">
+                          <h4 className="font-medium mb-2">Match Reasons</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedItem.match_details.match_reasons.map((reason, idx) => (<Badge key={idx} variant="secondary">{reason}</Badge>))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Full Details Tab */}
+                {activeTab === 'details' && (
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Complete Information</CardTitle></CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="font-medium mb-3 text-blue-600">Kamco Entity</h4>
+                          <div className="space-y-1 text-sm">
+                            <p><strong>Name:</strong> {selectedItem.kamco_data?.name_english || selectedItem.kamco_name}</p>
+                            <p><strong>Type:</strong> {selectedItem.kamco_data?.entity_type || selectedItem.kamco_type}</p>
+                            <p><strong>Civil ID:</strong> {selectedItem.kamco_data?.civil_id || 'N/A'}</p>
+                            <p><strong>Passport:</strong> {selectedItem.kamco_data?.passport_number || 'N/A'}</p>
+                            <p><strong>Nationality:</strong> {selectedItem.kamco_data?.nationality || 'N/A'}</p>
+                            <p><strong>DOB:</strong> {formatDate(selectedItem.kamco_data?.date_of_birth)}</p>
+                            <p><strong>Category:</strong> {selectedItem.kamco_data?.entity_category || 'N/A'}</p>
+                            <p><strong>City:</strong> {selectedItem.kamco_data?.city || 'N/A'}</p>
+                            <p><strong>Country:</strong> {selectedItem.kamco_data?.country_of_residence || 'N/A'}</p>
+                            <p><strong>Phone:</strong> {selectedItem.kamco_data?.phone || 'N/A'}</p>
+                            <p><strong>Email:</strong> {selectedItem.kamco_data?.email || 'N/A'}</p>
+                            <p><strong>Occupation:</strong> {selectedItem.kamco_data?.occupation || 'N/A'}</p>
+                            <p><strong>Employer:</strong> {selectedItem.kamco_data?.employer || 'N/A'}</p>
+                            <p><strong>Account Status:</strong> {selectedItem.kamco_data?.account_status || 'N/A'}</p>
+                            <p><strong>Risk Level:</strong> {selectedItem.kamco_data?.risk_level || 'N/A'}</p>
+                            <p><strong>Onboarding:</strong> {formatDate(selectedItem.kamco_data?.onboarding_date)}</p>
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium mb-3 text-red-600">Blacklist Entry</h4>
+                          <div className="space-y-1 text-sm">
+                            <p><strong>Name:</strong> {selectedItem.blacklist_data?.name_english || selectedItem.blacklist_name}</p>
+                            <p><strong>List Type:</strong> {selectedItem.blacklist_data?.list_type || selectedItem.match_type || 'N/A'}</p>
+                            <p><strong>Civil ID:</strong> {selectedItem.blacklist_data?.civil_id || 'N/A'}</p>
+                            <p><strong>Passport:</strong> {selectedItem.blacklist_data?.passport || 'N/A'}</p>
+                            <p><strong>Nationality:</strong> {selectedItem.blacklist_data?.nationality || 'N/A'}</p>
+                            <p><strong>DOB:</strong> {formatDate(selectedItem.blacklist_data?.date_of_birth)}</p>
+                            <p><strong>Source:</strong> {selectedItem.blacklist_data?.list_source || selectedItem.blacklist_source || 'N/A'}</p>
+                            <p><strong>Risk Level:</strong> {selectedItem.blacklist_data?.risk_level || 'N/A'}</p>
+                            <p><strong>Reason:</strong> {selectedItem.blacklist_data?.reason || 'N/A'}</p>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
-          {/* Review Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Review Details</CardTitle>
-              <CardDescription>
-                {selectedItem
-                  ? `Case #${selectedItem.id}`
-                  : 'Select an item to review'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {selectedItem ? (
-                <div className="space-y-6">
-                  {/* Match Info */}
-                  <div className="space-y-3">
+                {/* Decision Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Your Decision</CardTitle>
+                    <CardDescription>Review the information above and make your decision</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div>
-                      <Label>Kamco Entity</Label>
-                      <p className="text-sm font-medium mt-1">
-                        {selectedItem.kamco_name}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Type: {selectedItem.kamco_type}
-                        {selectedItem.kamco_civil_id && ` • Civil ID: ${selectedItem.kamco_civil_id}`}
-                      </p>
+                      <Label htmlFor="notes">Checker Notes</Label>
+                      <Textarea id="notes" placeholder="Add your review notes and justification..." value={reviewNotes} onChange={(e) => setReviewNotes(e.target.value)} rows={3} className="mt-1" />
                     </div>
-                    <div>
-                      <Label>Blacklist Match</Label>
-                      <p className="text-sm font-medium mt-1">
-                        {selectedItem.blacklist_name}
-                      </p>
-                      {selectedItem.blacklist_civil_id && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Civil ID: {selectedItem.blacklist_civil_id}
-                        </p>
-                      )}
+                    <div className="flex gap-3">
+                      <Button onClick={() => handleDecision('approved')} disabled={submitting} className="flex-1 bg-green-600 hover:bg-green-700"><CheckCircle className="w-4 h-4 mr-2" />Approve (Clear)</Button>
+                      <Button onClick={() => handleDecision('rejected')} disabled={submitting} variant="destructive" className="flex-1"><XCircle className="w-4 h-4 mr-2" />Reject (Confirm Match)</Button>
+                      <Button onClick={() => handleDecision('recheck')} disabled={submitting} variant="outline" className="flex-1"><RefreshCw className="w-4 h-4 mr-2" />Request Recheck</Button>
                     </div>
-                    <div>
-                      <Label>Match Details</Label>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="outline">{selectedItem.match_score}% match</Badge>
-                        <Badge variant="outline">{selectedItem.match_type}</Badge>
-                        <Badge variant={
-                          selectedItem.severity === 'high' || selectedItem.severity === 'critical'
-                            ? 'destructive'
-                            : 'secondary'
-                        }>
-                          {selectedItem.severity} severity
-                        </Badge>
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Flagged By</Label>
-                      <p className="text-sm mt-1">
-                        {selectedItem.flagged_by || 'System'}
-                      </p>
-                    </div>
-                    <div>
-                      <Label>Screener Notes</Label>
-                      <p className="text-sm mt-1">
-                        {selectedItem.notes || 'No notes provided'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Checker Notes */}
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Your Review Notes</Label>
-                    <textarea
-                      id="notes"
-                      value={reviewNotes}
-                      onChange={(e) => setReviewNotes(e.target.value)}
-                      className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Add your review notes here..."
-                    />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="space-y-2">
-                    <Button
-                      onClick={handleApprove}
-                      className="w-full"
-                      variant="default"
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Approve Clearance
-                    </Button>
-                    <Button
-                      onClick={handleReject}
-                      className="w-full"
-                      variant="destructive"
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Reject & Escalate
-                    </Button>
-                    <Button
-                      onClick={handleRecheck}
-                      className="w-full"
-                      variant="outline"
-                    >
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      Request Re-screening
-                    </Button>
-                  </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <Card className="h-64 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Select an item from the queue to review</p>
                 </div>
-              ) : (
-                <div className="text-center text-muted-foreground py-12">
-                  Select an item from the queue to begin review
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </Card>
+            )}
+          </div>
         </div>
-
-        {/* Bulk Review Wizard */}
-        <BulkReviewWizard
-          isOpen={showBulkWizard}
-          onClose={() => setShowBulkWizard(false)}
-          selectedItemIds={selectedItems}
-          onReviewComplete={handleBulkReviewComplete}
-        />
-      </div>
-    </MainLayout>
+      )}
+    </div>
   );
 };
 

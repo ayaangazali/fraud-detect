@@ -46,7 +46,7 @@ class ReportService:
         Returns:
             ScreeningSummaryData with aggregated statistics
         """
-        # Base query
+        # Base query for InReviewQueue
         query = self.db.query(InReviewQueue)
         
         # Apply date filters
@@ -61,6 +61,18 @@ class ReportService:
         # Get all screenings
         screenings = query.all()
         total_screenings = len(screenings)
+        
+        # Get FlaggedItem counts
+        flagged_query = self.db.query(FlaggedItem)
+        if filters:
+            if filters.date_from:
+                flagged_query = flagged_query.filter(FlaggedItem.flagged_at >= filters.date_from)
+            if filters.date_to:
+                flagged_query = flagged_query.filter(FlaggedItem.flagged_at <= filters.date_to)
+        
+        total_flagged = flagged_query.filter(FlaggedItem.status.in_(['pending', 'checker_review', 'awaiting_final'])).count()
+        approved = flagged_query.filter(FlaggedItem.status == 'approved').count()
+        pending_review = flagged_query.filter(FlaggedItem.status.in_(['checker_review', 'awaiting_final', 'pending'])).count()
         
         # Calculate matches by risk level
         # Note: InReviewQueue doesn't have risk_level, we'll calculate from match_score
@@ -118,6 +130,9 @@ class ReportService:
         return ScreeningSummaryData(
             total_screenings=total_screenings,
             total_matches=total_matches,
+            total_flagged=total_flagged,
+            approved=approved,
+            pending_review=pending_review,
             critical_matches=critical_matches,
             high_matches=high_matches,
             medium_matches=medium_matches,

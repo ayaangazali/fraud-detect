@@ -701,6 +701,73 @@ async def get_checker_queue(
                 if flagged_by_user:
                     flagged_by_name = flagged_by_user.username
             
+            # Try to get full Kamco entity data for comparison
+            kamco_data = None
+            try:
+                from models.screening import KamcoEntity
+                kamco_entity = db.query(KamcoEntity).filter(KamcoEntity.id == item.kamco_id).first()
+                if kamco_entity:
+                    kamco_data = {
+                        'id': kamco_entity.id,
+                        'customer_id': kamco_entity.customer_id,
+                        'name_english': kamco_entity.name_english,
+                        'name_arabic': kamco_entity.name_arabic,
+                        'civil_id': kamco_entity.civil_id,
+                        'passport_number': kamco_entity.passport_number,
+                        'date_of_birth': kamco_entity.date_of_birth,
+                        'nationality': kamco_entity.nationality,
+                        'entity_type': kamco_entity.entity_type,
+                        'entity_category': kamco_entity.entity_category,
+                        'occupation': kamco_entity.occupation,
+                        'employer': kamco_entity.employer,
+                        'country_of_residence': kamco_entity.country_of_residence,
+                        'city': kamco_entity.city,
+                        'phone': kamco_entity.phone,
+                        'email': kamco_entity.email,
+                        'account_status': kamco_entity.account_status,
+                        'risk_level': kamco_entity.risk_level,
+                        'onboarding_date': kamco_entity.onboarding_date,
+                    }
+            except Exception:
+                pass
+            
+            # Try to get blacklist data from ScreeningMatch
+            blacklist_data = None
+            match_details = None
+            try:
+                from models.screening import ScreeningMatch
+                # Find matching ScreeningMatch by kamco name and blacklist name
+                screening_match = db.query(ScreeningMatch).filter(
+                    ScreeningMatch.blacklist_name_english == item.blacklist_name
+                ).first()
+                if screening_match:
+                    blacklist_data = {
+                        'reference': screening_match.blacklist_reference,
+                        'name_english': screening_match.blacklist_name_english,
+                        'name_arabic': screening_match.blacklist_name_arabic,
+                        'civil_id': screening_match.blacklist_civil_id,
+                        'passport': screening_match.blacklist_passport,
+                        'nationality': screening_match.blacklist_nationality,
+                        'date_of_birth': screening_match.blacklist_dob,
+                        'list_type': screening_match.blacklist_list_type,
+                        'list_source': screening_match.blacklist_list_source,
+                        'risk_level': screening_match.blacklist_risk_level,
+                        'reason': screening_match.blacklist_reason,
+                    }
+                    match_details = {
+                        'overall_score': screening_match.overall_score,
+                        'name_english_score': screening_match.name_english_score,
+                        'name_arabic_score': screening_match.name_arabic_score,
+                        'civil_id_score': screening_match.civil_id_score,
+                        'passport_score': screening_match.passport_score,
+                        'dob_score': screening_match.dob_score,
+                        'nationality_score': screening_match.nationality_score,
+                        'confidence': screening_match.confidence,
+                        'match_reasons': screening_match.match_reasons or [],
+                    }
+            except Exception:
+                pass
+            
             queue.append({
                 'id': item.id,
                 'kamco_name': item.kamco_name,
@@ -714,7 +781,14 @@ async def get_checker_queue(
                 'status': item.status,
                 'flagged_by': flagged_by_name or 'System',
                 'flagged_at': item.flagged_at.isoformat() if item.flagged_at else None,
-                'flag_reason': item.flag_reason
+                'flag_reason': item.flag_reason,
+                # Screener notes - this is what the checker needs to see
+                'screener_notes': item.flag_reason,
+                'notes': item.flag_reason,
+                # Full comparison data
+                'kamco_data': kamco_data,
+                'blacklist_data': blacklist_data,
+                'match_details': match_details,
             })
         
         return {
@@ -810,9 +884,197 @@ async def get_finalizer_queue(
             status_code=500,
             detail=f"Failed to get finalizer queue: {str(e)}"
         )
+
+
+@router.get("/item/{item_id}")
+async def get_review_item_details(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get detailed information for a flagged item including:
+    - Full Kamco entity data
+    - Full blacklist data
+    - Match scoring breakdown
+    - Screener notes
+    - All history
+    """
+    try:
+        item = db.query(FlaggedItem).filter(FlaggedItem.id == item_id).first()
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        
+        # Get flagged by user info
+        flagged_by_name = None
+        if item.flagged_by_id:
+            flagged_by_user = db.query(User).filter(User.id == item.flagged_by_id).first()
+            if flagged_by_user:
+                flagged_by_name = flagged_by_user.username
+        
+        # Get full Kamco entity data
+        kamco_data = None
+        try:
+            from models.screening import KamcoEntity
+            kamco_entity = db.query(KamcoEntity).filter(KamcoEntity.id == item.kamco_id).first()
+            if kamco_entity:
+                kamco_data = {
+                    'id': kamco_entity.id,
+                    'customer_id': kamco_entity.customer_id,
+                    'name_english': kamco_entity.name_english,
+                    'name_arabic': kamco_entity.name_arabic,
+                    'civil_id': kamco_entity.civil_id,
+                    'passport_number': kamco_entity.passport_number,
+                    'date_of_birth': kamco_entity.date_of_birth,
+                    'nationality': kamco_entity.nationality,
+                    'secondary_nationality': kamco_entity.secondary_nationality,
+                    'entity_type': kamco_entity.entity_type,
+                    'entity_category': kamco_entity.entity_category,
+                    'occupation': kamco_entity.occupation,
+                    'employer': kamco_entity.employer,
+                    'position': kamco_entity.position,
+                    'country_of_residence': kamco_entity.country_of_residence,
+                    'city': kamco_entity.city,
+                    'address': kamco_entity.address,
+                    'phone': kamco_entity.phone,
+                    'email': kamco_entity.email,
+                    'account_status': kamco_entity.account_status,
+                    'risk_level': kamco_entity.risk_level,
+                    'onboarding_date': kamco_entity.onboarding_date,
+                    'last_review_date': kamco_entity.last_review_date,
+                    'notes': kamco_entity.notes,
+                }
+        except Exception:
+            pass
+        
+        # Get blacklist data from ScreeningMatch
+        blacklist_data = None
+        match_details = None
+        screening_match_id = None
+        try:
+            from models.screening import ScreeningMatch
+            screening_match = db.query(ScreeningMatch).filter(
+                ScreeningMatch.blacklist_name_english == item.blacklist_name
+            ).first()
+            if screening_match:
+                screening_match_id = screening_match.id
+                blacklist_data = {
+                    'reference': screening_match.blacklist_reference,
+                    'name_english': screening_match.blacklist_name_english,
+                    'name_arabic': screening_match.blacklist_name_arabic,
+                    'civil_id': screening_match.blacklist_civil_id,
+                    'passport': screening_match.blacklist_passport,
+                    'nationality': screening_match.blacklist_nationality,
+                    'date_of_birth': screening_match.blacklist_dob,
+                    'list_type': screening_match.blacklist_list_type,
+                    'list_source': screening_match.blacklist_list_source,
+                    'risk_level': screening_match.blacklist_risk_level,
+                    'reason': screening_match.blacklist_reason,
+                    'raw_data': screening_match.blacklist_raw_data,
+                }
+                match_details = {
+                    'overall_score': screening_match.overall_score,
+                    'name_english_score': screening_match.name_english_score,
+                    'name_arabic_score': screening_match.name_arabic_score,
+                    'civil_id_score': screening_match.civil_id_score,
+                    'passport_score': screening_match.passport_score,
+                    'dob_score': screening_match.dob_score,
+                    'nationality_score': screening_match.nationality_score,
+                    'confidence': screening_match.confidence,
+                    'match_reasons': screening_match.match_reasons or [],
+                    'screened_at': screening_match.screened_at.isoformat() if screening_match.screened_at else None,
+                }
+        except Exception:
+            pass
+        
+        return {
+            'success': True,
+            'item': {
+                'id': item.id,
+                'kamco_name': item.kamco_name,
+                'kamco_type': item.kamco_type,
+                'kamco_id': item.kamco_id,
+                'blacklist_name': item.blacklist_name,
+                'blacklist_source': item.blacklist_source,
+                'match_score': item.match_score,
+                'severity': item.severity,
+                'status': item.status,
+                'flagged_by': flagged_by_name or 'System',
+                'flagged_by_id': item.flagged_by_id,
+                'flagged_at': item.flagged_at.isoformat() if item.flagged_at else None,
+                'screener_notes': item.flag_reason,
+                'flag_reason': item.flag_reason,
+                'flag_reason_category': item.flag_reason_category,
+                'checker_notes': item.checker_notes,
+                'finalizer_notes': item.finalizer_notes,
+                'resolution_type': item.resolution_type,
+            },
+            'kamco_data': kamco_data,
+            'blacklist_data': blacklist_data,
+            'match_details': match_details,
+            'screening_match_id': screening_match_id,
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get item details: {str(e)}"
+        )
+
+
+@router.get("/stats")
+async def get_review_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get review statistics for dashboard
+    """
+    try:
+        from models.screening import ScreeningMatch, BlacklistUpload
+        
+        # Count flagged items by status
+        total_flagged = db.query(FlaggedItem).count()
+        pending_review = db.query(FlaggedItem).filter(
+            FlaggedItem.status.in_(['pending', 'flagged'])
+        ).count()
+        approved = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'approved'
+        ).count()
+        rejected = db.query(FlaggedItem).filter(
+            FlaggedItem.status == 'rejected'
+        ).count()
+        escalated = db.query(FlaggedItem).filter(
+            FlaggedItem.status.in_(['escalated', 'awaiting_final'])
+        ).count()
+        
+        # Screening match stats
+        total_matches = db.query(ScreeningMatch).count()
+        pending_matches = db.query(ScreeningMatch).filter(
+            ScreeningMatch.decision_status == 'pending'
+        ).count()
+        
+        # Upload stats
+        total_uploads = db.query(BlacklistUpload).count()
+        
+        return {
+            'success': True,
+            'stats': {
+                'total_flagged': total_flagged,
+                'pending_review': pending_review,
+                'approved': approved,
+                'rejected': rejected,
+                'escalated': escalated,
+                'total_matches': total_matches,
+                'pending_matches': pending_matches,
+                'total_uploads': total_uploads,
+            }
+        }
         
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to get finalizer queue: {str(e)}"
+            detail=f"Failed to get stats: {str(e)}"
         )

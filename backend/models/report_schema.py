@@ -70,6 +70,9 @@ class ScreeningSummaryData(BaseModel):
     """Data structure for screening summary report"""
     total_screenings: int
     total_matches: int
+    total_flagged: int = 0  # Items flagged by screener
+    approved: int = 0  # Items approved
+    pending_review: int = 0  # Items pending checker review
     critical_matches: int
     high_matches: int
     medium_matches: int
