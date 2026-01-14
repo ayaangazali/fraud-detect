@@ -366,8 +366,8 @@ class ReportService:
             {
                 'id': entry.id,
                 'action_type': entry.action_type,
-                'entity_name': entry.entity_name,
-                'entity_type': entry.entity_type,
+                'entity_name': entry.kamco_name,  # Use kamco_name instead of entity_name
+                'entity_type': entry.kamco_type,  # Use kamco_type instead of entity_type
                 'decision': entry.decision,
                 'reviewed_by': entry.reviewed_by,
                 'created_at': entry.created_at.isoformat() if entry.created_at else None,

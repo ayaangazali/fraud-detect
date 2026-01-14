@@ -719,7 +719,8 @@ async def get_checker_queue(
         
         return {
             'success': True,
-            'data': queue,
+            'queue': queue,
+            'data': queue,  # Also include 'data' for backward compatibility
             'count': len(queue),
             'role': 'checker'
         }

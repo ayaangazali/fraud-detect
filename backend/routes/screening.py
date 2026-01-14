@@ -937,6 +937,48 @@ async def make_decision(
         match.decision_by = current_user.id
         match.decision_notes = request.notes
         
+        # If decision is FLAGGED, create a FlaggedItem for checker review
+        flagged_item_id = None
+        if decision_status == DecisionStatus.FLAGGED:
+            # Determine severity based on match score
+            score = match.overall_score or 0
+            if score >= 90:
+                severity = 'critical'
+            elif score >= 80:
+                severity = 'high'
+            elif score >= 60:
+                severity = 'medium'
+            else:
+                severity = 'low'
+            
+            # Check if FlaggedItem already exists for this match
+            existing_flagged = db.query(FlaggedItem).filter(
+                FlaggedItem.kamco_name == (match.kamco_entity.name_english if match.kamco_entity else 'Unknown'),
+                FlaggedItem.blacklist_name == match.blacklist_name_english,
+                FlaggedItem.status.in_(['pending', 'flagged', 'checker_review'])
+            ).first()
+            
+            if not existing_flagged:
+                flagged_item = FlaggedItem(
+                    kamco_name=match.kamco_entity.name_english if match.kamco_entity else 'Unknown',
+                    kamco_type=match.kamco_entity.entity_type if match.kamco_entity else 'unknown',
+                    kamco_id=match.kamco_entity.id if match.kamco_entity else 0,
+                    blacklist_name=match.blacklist_name_english or 'Unknown',
+                    blacklist_source=match.blacklist_reference or 'V2 Screening',
+                    match_score=match.overall_score,
+                    flag_reason=request.notes or f"Flagged via V2 screening - Match score: {match.overall_score}%",
+                    flag_reason_category='match_confirmed',
+                    severity=severity,
+                    flagged_by_id=current_user.id,
+                    flagged_by=current_user.username,
+                    status='flagged',  # Ready for checker review
+                    resolution_type='flagged',
+                    flagged_at=datetime.utcnow()
+                )
+                db.add(flagged_item)
+                db.flush()  # Get the ID
+                flagged_item_id = flagged_item.id
+        
         db.commit()
         db.refresh(decision)
         
@@ -950,16 +992,21 @@ async def make_decision(
                 'match_id': request.match_id,
                 'status': decision_status.name,
                 'notes': request.notes,
-                'previous_status': previous_status.name if previous_status else None
+                'previous_status': previous_status.name if previous_status else None,
+                'flagged_item_id': flagged_item_id
             }
         )
+        
+        message = f"Successfully recorded decision: {decision_status.name}"
+        if flagged_item_id:
+            message += f" - Created FlaggedItem #{flagged_item_id} for checker review"
         
         return DecisionResponse(
             success=True,
             decision_id=decision.id,
             match_id=request.match_id,
             status=decision_status.name,
-            message=f"Successfully recorded decision: {decision_status.name}"
+            message=message
         )
         
     except HTTPException:
@@ -1040,6 +1087,45 @@ async def bulk_decision(
                 match.decision_date = datetime.utcnow()
                 match.decision_by = current_user.id
                 match.decision_notes = request.notes
+                
+                # If decision is FLAGGED, create a FlaggedItem for checker review
+                if decision_status == DecisionStatus.FLAGGED:
+                    # Determine severity based on match score
+                    score = match.overall_score or 0
+                    if score >= 90:
+                        severity = 'critical'
+                    elif score >= 80:
+                        severity = 'high'
+                    elif score >= 60:
+                        severity = 'medium'
+                    else:
+                        severity = 'low'
+                    
+                    # Check if FlaggedItem already exists
+                    existing_flagged = db.query(FlaggedItem).filter(
+                        FlaggedItem.kamco_name == (match.kamco_entity.name_english if match.kamco_entity else 'Unknown'),
+                        FlaggedItem.blacklist_name == match.blacklist_name_english,
+                        FlaggedItem.status.in_(['pending', 'flagged', 'checker_review'])
+                    ).first()
+                    
+                    if not existing_flagged:
+                        flagged_item = FlaggedItem(
+                            kamco_name=match.kamco_entity.name_english if match.kamco_entity else 'Unknown',
+                            kamco_type=match.kamco_entity.entity_type if match.kamco_entity else 'unknown',
+                            kamco_id=match.kamco_entity.id if match.kamco_entity else 0,
+                            blacklist_name=match.blacklist_name_english or 'Unknown',
+                            blacklist_source=match.blacklist_reference or 'V2 Screening',
+                            match_score=match.overall_score,
+                            flag_reason=request.notes or f"Flagged via V2 bulk screening - Match score: {match.overall_score}%",
+                            flag_reason_category='match_confirmed',
+                            severity=severity,
+                            flagged_by_id=current_user.id,
+                            flagged_by=current_user.username,
+                            status='flagged',
+                            resolution_type='flagged',
+                            flagged_at=datetime.utcnow()
+                        )
+                        db.add(flagged_item)
                 
                 success_count += 1
                 
