@@ -12,6 +12,7 @@ import {
   LogOut,
   X,
   ChevronRight,
+  Search,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
@@ -50,6 +51,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       href: '/screening',
       icon: FileSearch,
       roles: ['screener'],
+    },
+    {
+      name: 'Individual Check',
+      href: '/screening/individual',
+      icon: Search,
+      roles: ['screener', 'checker', 'finalizer'],
     },
     {
       name: 'Checker Review',

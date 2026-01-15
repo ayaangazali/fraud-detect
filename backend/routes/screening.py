@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from rapidfuzz import fuzz
 import csv
 import io
 
@@ -1516,3 +1517,218 @@ async def get_kamco_entities(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get Kamco entities: {str(e)}"
         )
+
+
+# ============================================================================
+# INDIVIDUAL SCREENING ENDPOINT
+# Screen a single person against the entire Kamco database
+# ============================================================================
+
+class IndividualScreenRequest(BaseModel):
+    """Request model for individual screening"""
+    name_english: str = Field(..., description="Name in English (required)")
+    name_arabic: Optional[str] = Field(None, description="Name in Arabic")
+    civil_id: Optional[str] = Field(None, description="Civil ID number")
+    passport_number: Optional[str] = Field(None, description="Passport number")
+    nationality: Optional[str] = Field(None, description="Nationality")
+    date_of_birth: Optional[str] = Field(None, description="Date of birth (YYYY-MM-DD)")
+    notes: Optional[str] = Field(None, description="Additional notes")
+
+
+@router.post("/v2/individual-screen")
+async def individual_screen(
+    request: IndividualScreenRequest,
+    current_user = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Screen an individual person against the Kamco database.
+    
+    Enter name and optional details to find potential matches in:
+    - Kamco Clients
+    - Kamco Vendors  
+    - Kamco Staff
+    - Other entities
+    
+    Returns matches with similarity scores and risk levels.
+    """
+    try:
+        # Initialize fuzzy matcher
+        matcher = FuzzyMatcherEnhanced()
+        
+        # Get all Kamco entities from database
+        kamco_entities = db.query(KamcoEntityModel).all()
+        
+        if not kamco_entities:
+            return {
+                'success': True,
+                'query': {
+                    'name_english': request.name_english,
+                    'name_arabic': request.name_arabic,
+                    'civil_id': request.civil_id,
+                    'passport_number': request.passport_number,
+                    'nationality': request.nationality,
+                    'date_of_birth': request.date_of_birth
+                },
+                'total_matches': 0,
+                'matches': [],
+                'screened_at': datetime.utcnow().isoformat(),
+                'screened_by': current_user.username
+            }
+        
+        matches = []
+        
+        for entity in kamco_entities:
+            match_reasons = []
+            scores = []
+            
+            # Name matching (English) - Primary check
+            if request.name_english and entity.name_english:
+                # Use multiple fuzzy matching algorithms for better accuracy
+                name_score_ratio = fuzz.ratio(
+                    matcher.normalize_text(request.name_english),
+                    matcher.normalize_text(entity.name_english)
+                ) / 100
+                
+                name_score_partial = fuzz.partial_ratio(
+                    matcher.normalize_text(request.name_english),
+                    matcher.normalize_text(entity.name_english)
+                ) / 100
+                
+                name_score_token = fuzz.token_sort_ratio(
+                    matcher.normalize_text(request.name_english),
+                    matcher.normalize_text(entity.name_english)
+                ) / 100
+                
+                # Use the best score
+                name_score = max(name_score_ratio, name_score_partial, name_score_token)
+                
+                if name_score >= 0.60:
+                    scores.append(name_score)
+                    match_reasons.append(f"English name similarity: {int(name_score * 100)}%")
+            
+            # Name matching (Arabic)
+            if request.name_arabic and entity.name_arabic:
+                arabic_score = fuzz.ratio(
+                    matcher.normalize_arabic_text(request.name_arabic),
+                    matcher.normalize_arabic_text(entity.name_arabic)
+                ) / 100
+                
+                if arabic_score >= 0.60:
+                    scores.append(arabic_score)
+                    match_reasons.append(f"Arabic name similarity: {int(arabic_score * 100)}%")
+            
+            # Civil ID exact/partial match - High priority
+            if request.civil_id and entity.civil_id:
+                civil_id_clean = request.civil_id.strip().replace('-', '').replace(' ', '')
+                entity_civil_clean = entity.civil_id.strip().replace('-', '').replace(' ', '')
+                
+                if civil_id_clean == entity_civil_clean:
+                    scores.append(1.0)
+                    match_reasons.append("✓ Civil ID EXACT MATCH")
+                elif civil_id_clean in entity_civil_clean or entity_civil_clean in civil_id_clean:
+                    scores.append(0.90)
+                    match_reasons.append("Civil ID partial match")
+            
+            # Passport number match
+            if request.passport_number and entity.passport_number:
+                passport_clean = request.passport_number.strip().upper()
+                entity_passport_clean = entity.passport_number.strip().upper()
+                
+                if passport_clean == entity_passport_clean:
+                    scores.append(1.0)
+                    match_reasons.append("✓ Passport EXACT MATCH")
+            
+            # Nationality match (bonus, not standalone)
+            if request.nationality and entity.nationality and scores:
+                if request.nationality.lower().strip() == entity.nationality.lower().strip():
+                    match_reasons.append("Nationality matches")
+            
+            # Date of birth match (bonus)
+            if request.date_of_birth and entity.date_of_birth and scores:
+                try:
+                    if request.date_of_birth == str(entity.date_of_birth)[:10]:
+                        scores.append(0.95)
+                        match_reasons.append("✓ Date of birth matches")
+                except:
+                    pass
+            
+            # Calculate final score if any matches found
+            if scores:
+                final_score = max(scores)
+                
+                # Only include matches above threshold
+                if final_score >= 0.60:
+                    # Determine risk level
+                    if final_score >= 0.95:
+                        risk_level = "CRITICAL"
+                    elif final_score >= 0.85:
+                        risk_level = "HIGH"
+                    elif final_score >= 0.75:
+                        risk_level = "MEDIUM"
+                    else:
+                        risk_level = "LOW"
+                    
+                    matches.append({
+                        'kamco_entity_id': entity.id,
+                        'kamco_customer_id': entity.customer_id,
+                        'kamco_name': entity.name_english or "Unknown",
+                        'kamco_name_arabic': entity.name_arabic,
+                        'kamco_type': entity.entity_type or "Unknown",
+                        'kamco_civil_id': entity.civil_id,
+                        'kamco_passport': entity.passport_number,
+                        'kamco_nationality': entity.nationality,
+                        'kamco_category': entity.entity_category,
+                        'kamco_risk_level': entity.risk_level,
+                        'kamco_account_status': entity.account_status,
+                        'match_score': round(final_score, 3),
+                        'match_percentage': f"{int(final_score * 100)}%",
+                        'match_reasons': match_reasons,
+                        'risk_level': risk_level
+                    })
+        
+        # Sort by match score descending
+        matches.sort(key=lambda x: x['match_score'], reverse=True)
+        
+        # Limit to top 50 matches
+        matches = matches[:50]
+        
+        # Log the screening action
+        try:
+            from models.database import Logbook
+            log_entry = Logbook(
+                action="individual_screening",
+                performed_by=current_user.username,
+                details=f"Screened: {request.name_english} | Civil ID: {request.civil_id or 'N/A'} | Found: {len(matches)} matches",
+                kamco_name=request.name_english,
+                result="matches_found" if matches else "clear"
+            )
+            db.add(log_entry)
+            db.commit()
+        except Exception as log_error:
+            print(f"Warning: Failed to log individual screening: {log_error}")
+        
+        return {
+            'success': True,
+            'query': {
+                'name_english': request.name_english,
+                'name_arabic': request.name_arabic,
+                'civil_id': request.civil_id,
+                'passport_number': request.passport_number,
+                'nationality': request.nationality,
+                'date_of_birth': request.date_of_birth,
+                'notes': request.notes
+            },
+            'total_matches': len(matches),
+            'matches': matches,
+            'screened_at': datetime.utcnow().isoformat(),
+            'screened_by': current_user.username,
+            'message': f"Found {len(matches)} potential matches in Kamco database" if matches else "No matches found - person appears clear"
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Individual screening failed: {str(e)}"
+        )
+
