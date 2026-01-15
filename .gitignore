@@ -1,14 +1,28 @@
 # Dependencies
 node_modules/
 package-lock.json
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Build outputs
 dist/
 build/
 
-# Environment variables
+# Environment variables - NEVER COMMIT THESE!
 .env
-.env.local
+.env.*
+!.env.example
+backend/.env
+frontend/.env
 
 # IDE
 .vscode/
@@ -30,3 +44,12 @@ coverage/
 
 # Uploads
 uploads/
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Reports (optional - uncomment if you don't want to track generated reports)
+# backend/reports/*.pdf
