@@ -1,938 +1,470 @@
-# 🛡️ Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection & AML/KYC Compliance System# 🔍 Kamco Compliance Screening System
+# 🛡️ Kamco Fraud Detection & AML/KYC Compliance System# 🔍 Kamco Compliance Screening System
 
 
 
-<div align="center">
+<div align="center">> **✅ ALL PHASES COMPLETE** - Production-ready sanctions screening with comprehensive review workflows, bulk operations, user management, email notifications, and detailed reporting.
 
 
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)<div align="center">> **✅ ALL PHASES COMPLETE** - Production-ready sanctions screening with comprehensive review workflows, bulk operations, user management, email notifications, and detailed reporting.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)**Version:** 1.0.0  
 
-![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)
+![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)**Status:** 🟢 Production Ready  
 
-![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)
+![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)**Completion Date:** January 11, 2026
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
 
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)![License](https://img.shields.io/badge/license-MIT-blue.svg)**Version:** 1.0.0  
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)A production-ready web application for AML/KYC compliance screening that identifies potential matches between internal Kamco entities (Clients, Vendors, Staff, Others) and blacklist/sanctions lists using fuzzy name matching and intelligent review workflows.
 
 
 
-### Enterprise-grade AML/KYC compliance system with intelligent screening and multi-stage review workflow![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)**Status:** 🟢 Production Ready  
+**Enterprise-grade fraud detection system with real-time blacklist screening, multi-stage review workflow, and comprehensive audit trails**## 🎯 Project Overview
 
 
 
-[Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation) • [API](#-api-documentation)![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)**Completion Date:** January 11, 2026
+[Features](#-key-features) • [Architecture](#-system-architecture) • [Installation](#-quick-start) • [API Docs](#-api-documentation) • [Testing](#-testing)**Purpose**: Automated sanctions screening system that processes blacklist Excel files, identifies potential matches using fuzzy logic, and provides a comprehensive review workflow for compliance teams.
 
 
-
-</div>![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
-
-
-
----![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)A production-ready web application for AML/KYC compliance screening that identifies potential matches between internal Kamco entities (Clients, Vendors, Staff, Others) and blacklist/sanctions lists using fuzzy name matching and intelligent review workflows.
-
-
-
-## 📖 Overview
-
-
-
-Kamco Fraud Detection System is a **production-ready** Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance platform. It automates screening of clients, vendors, and staff against regulatory blacklists using advanced fuzzy matching algorithms.**Enterprise-grade fraud detection system with real-time blacklist screening, multi-stage review workflow, and comprehensive audit trails**## 🎯 Project Overview
-
-
-
-### The Problem
-
-
-
-- ❌ Manual screening takes **8 hours** for 1,000 entries[Features](#-key-features) • [Architecture](#-system-architecture) • [Installation](#-quick-start) • [API Docs](#-api-documentation) • [Testing](#-testing)**Purpose**: Automated sanctions screening system that processes blacklist Excel files, identifies potential matches using fuzzy logic, and provides a comprehensive review workflow for compliance teams.
-
-- ❌ High false-negative rate (5%) due to typos and transliterations
-
-- ❌ No audit trail for regulatory compliance
-
-- ❌ Single-point approval creates risk
 
 ---**Key Features**:
 
-### Our Solution
-
 - 📊 **Excel Import** - Upload blacklist files with automatic parsing
 
-- ✅ Automated screening in **5 minutes** (96x faster)
+</div>- 🔎 **Fuzzy Matching** - 85% threshold with Arabic/English name support  
 
-- ✅ 95%+ accuracy with fuzzy matching</div>- 🔎 **Fuzzy Matching** - 85% threshold with Arabic/English name support  
-
-- ✅ Complete audit trail for compliance
-
-- ✅ 3-tier review workflow (Screener → Checker → Finalizer)- 📋 **Review Workflows** - Three-tier review system (Screener → Checker → Finalizer)
-
-- ✅ $47.5M+ annual savings potential
+- 📋 **Review Workflows** - Three-tier review system (Screener → Checker → Finalizer)
 
 ## 📋 Table of Contents- 📧 **Email Notifications** - Automated alerts for completed uploads and reviews
 
----
-
 - 📑 **Bulk Operations** - Review multiple items simultaneously
-
-## 🚀 Quick Start
 
 - [Overview](#-overview)- 📊 **Comprehensive Reports** - Item-level and cumulative decision reports
 
-### Prerequisites
-
 - [Key Features](#-key-features)- 🔐 **Role-Based Access** - JWT authentication with role-specific permissions
 
-- Python 3.13+
-
-- Node.js 20+- [System Architecture](#-system-architecture)
-
-- Git
+- [System Architecture](#-system-architecture)
 
 - [Technology Stack](#-technology-stack)**Architecture**:
 
-### Installation
-
 - [Workflow Design](#-workflow-design)- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui (Port 5173)
 
-**1. Clone the repository**
+- [Security Implementation](#-security-implementation)- **Backend**: FastAPI + SQLAlchemy + SQLite (Port 8000)
 
-```bash- [Security Implementation](#-security-implementation)- **Backend**: FastAPI + SQLAlchemy + SQLite (Port 8000)
-
-git clone https://github.com/ayaangazali/fraud-detect.git
-
-cd fraud-detect- [Quick Start](#-quick-start)- **Database**: SQLite with pre-loaded Kamco entities
-
-```
+- [Quick Start](#-quick-start)- **Database**: SQLite with pre-loaded Kamco entities
 
 - [Deployment](#-deployment)- **Matching Engine**: RapidFuzz with token_sort_ratio algorithm
 
-**2. Start the backend**
+- [API Documentation](#-api-documentation)
 
-```bash- [API Documentation](#-api-documentation)
+- [Testing](#-testing)## 🚀 Quick Start
 
-cd backend
+- [Project Structure](#-project-structure)
 
-python3 -m venv .venv- [Testing](#-testing)## 🚀 Quick Start
+- [Contributing](#-contributing)### Prerequisites
 
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+- [License](#-license)- Node.js 18+ (Frontend)
 
-pip install -r requirements.txt- [Project Structure](#-project-structure)
+- Python 3.9+ (Backend)
 
-python3 seed_database.py
-
-python -m uvicorn main:app --reload --port 8000- [Contributing](#-contributing)### Prerequisites
-
-```
-
-Backend runs at: http://127.0.0.1:8000- [License](#-license)- Node.js 18+ (Frontend)
+---- Modern web browser
 
 
 
-**3. Start the frontend** (new terminal)- Python 3.9+ (Backend)
+## 🎯 Overview### 1. Setup & Run Backend
 
 ```bash
 
-cd frontend---- Modern web browser
+**Kamco Fraud Detection System** is a comprehensive **Anti-Money Laundering (AML)** and **Know Your Customer (KYC)** compliance platform designed for financial institutions. The system automates the screening of clients, vendors, staff, and transactions against regulatory blacklists using advanced fuzzy matching algorithms.cd backend
 
-npm install
+pip install -r requirements.txt
 
-npm run dev
-
-```
-
-Frontend runs at: http://localhost:3001## 🎯 Overview### 1. Setup & Run Backend
-
-
-
-**4. Login**```bash
+### 🚨 Problem Statementpython3 main.py
 
 ```
 
-Username: admin**Kamco Fraud Detection System** is a comprehensive **Anti-Money Laundering (AML)** and **Know Your Customer (KYC)** compliance platform designed for financial institutions. The system automates the screening of clients, vendors, staff, and transactions against regulatory blacklists using advanced fuzzy matching algorithms.cd backend
+Financial institutions face critical challenges:Backend API: **http://localhost:8000**  
 
-Password: Admin123
+API Documentation: **http://localhost:8000/docs**
 
-```pip install -r requirements.txt
-
-
-
----### 🚨 Problem Statementpython3 main.py
-
-
-
-## ✨ Features```
-
-
-
-### 1. Intelligent Screening EngineFinancial institutions face critical challenges:Backend API: **http://localhost:8000**  
-
-
-
-- **Fuzzy Name Matching** - Handles typos, transliterations, and name variationsAPI Documentation: **http://localhost:8000/docs**
-
-- **Multi-Field Matching** - Civil ID, passport number, date of birth, nationality
-
-- **Risk Classification** - CRITICAL (95%+), HIGH (85-94%), MEDIUM (75-84%), LOW (60-74%)- ❌ **Manual Screening Inefficiency**: Hours spent manually comparing names against blacklists
-
-- **Batch Processing** - Upload 10,000+ entries instantly
+- ❌ **Manual Screening Inefficiency**: Hours spent manually comparing names against blacklists
 
 - ❌ **High Error Rate**: Typos, transliterations, and name variations cause missed matches### 2. Setup & Run Frontend
 
-### 2. Multi-Stage Review Workflow
-
 - ❌ **No Audit Trail**: Difficulty proving compliance to regulators```bash
 
-```
+- ❌ **Single-Point Approval Risk**: No segregation of duties in decision-makingcd frontend
 
-STAGE 1: Screener- ❌ **Single-Point Approval Risk**: No segregation of duties in decision-makingcd frontend
+- ❌ **Scalability Issues**: Unable to process thousands of screenings quicklynpm install
 
-  ↓ Upload blacklist → Auto-screen → Review matches → Flag/Clear
+npm run dev
 
-  - ❌ **Scalability Issues**: Unable to process thousands of screenings quicklynpm install
+### ✅ Our Solution```
 
-STAGE 2: Checker  
+Frontend UI: **http://localhost:5173**
 
-  ↓ Review flagged items → Verify data → Approve/Rejectnpm run dev
+We built an enterprise-grade system that delivers:
 
-  
+### 3. Test Credentials
 
-STAGE 3: Finalizer### ✅ Our Solution```
+| Feature | Benefit | Impact |The system comes with pre-configured test users:
 
-  ↓ Final compliance review → Generate reports → Final decision
+|---------|---------|--------|
 
-```Frontend UI: **http://localhost:5173**
-
-
-
-**Segregation of Duties (SoD) enforced at every stage**We built an enterprise-grade system that delivers:
-
-
-
-### 3. Role-Based Access Control### 3. Test Credentials
-
-
-
-| Role | Upload | Screen | Flag | Approve | Final | Audit || Feature | Benefit | Impact |The system comes with pre-configured test users:
-
-|------|--------|--------|------|---------|-------|-------|
-
-| Screener | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ ||---------|---------|--------|
-
-| Checker | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |
-
-| Finalizer | ❌ | ✅ | ❌ | ❌ | ✅ | ✅ || 🤖 **Automated Screening** | Fuzzy matching with 95%+ accuracy | **96x faster** than manual || Role | Username | Password | Permissions |
-
-| Admin | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 🤖 **Automated Screening** | Fuzzy matching with 95%+ accuracy | **96x faster** than manual || Role | Username | Password | Permissions |
 
 | 🔄 **3-Tier Workflow** | Screener → Checker → Finalizer | **100% compliance** with SoD ||------|----------|----------|-------------|
 
-### 4. Real-Time Dashboard
-
 | 📊 **Real-Time Dashboard** | Live KPIs and risk analytics | **Instant visibility** || **Screener** | `screener_test` | `password123` | Initial screening, flag items |
 
-- **Live KPIs** - Total screenings, flagged items, approval rates
+| 🔐 **Complete Audit Trail** | Every action logged immutably | **Regulatory ready** || **Checker** | `checker_test` | `password123` | Review flags, approve/reject/escalate |
 
-- **Risk Distribution** - Visual breakdown by risk level| 🔐 **Complete Audit Trail** | Every action logged immutably | **Regulatory ready** || **Checker** | `checker_test` | `password123` | Review flags, approve/reject/escalate |
+| 🎯 **Individual Screening** | Ad-hoc person lookup | **On-demand verification** || **Finalizer** | `finalizer_test` | `password123` | Final approval authority |
 
-- **Activity Feed** - Recent decisions and actions
+| ⚡ **Batch Processing** | Upload 10,000+ entries instantly | **Unlimited scalability** |
 
-- **Trend Analysis** - 7-day, 30-day, 90-day metrics| 🎯 **Individual Screening** | Ad-hoc person lookup | **On-demand verification** || **Finalizer** | `finalizer_test` | `password123` | Final approval authority |
+### 4. Quick Test
 
+### 💰 ROI Impact1. Login as `checker_test` / `password123`
 
+2. Navigate to **Screening Queue**
 
-### 5. Individual Screening| ⚡ **Batch Processing** | Upload 10,000+ entries instantly | **Unlimited scalability** |
+```3. Upload test blacklist: `test_data/blacklist_with_matches.csv`
 
+Manual Process:   8 hours per 1,000 screenings4. Click **"Run Screening"** - system auto-screens and flags matches
 
+Automated:        5 minutes per 1,000 screenings5. Review flagged items in the queue
 
-Search ad-hoc individuals against the database:### 4. Quick Test
-
-- Walk-in customer verification
-
-- Vendor due diligence  ### 💰 ROI Impact1. Login as `checker_test` / `password123`
-
-- Employee background checks
-
-- Transaction monitoring2. Navigate to **Screening Queue**
-
-
-
-### 6. Complete Audit Trail```3. Upload test blacklist: `test_data/blacklist_with_matches.csv`
-
-
-
-Every action logged with:Manual Process:   8 hours per 1,000 screenings4. Click **"Run Screening"** - system auto-screens and flags matches
-
-- User attribution
-
-- Timestamp (millisecond precision)Automated:        5 minutes per 1,000 screenings5. Review flagged items in the queue
-
-- Before/after state
-
-- Decision notesTime Saved:       96%
-
-- IP address
+Time Saved:       96%
 
 ## 📁 Project Structure
 
----
-
 Cost per Manual Screening:  $50
-
-## 🏗️ Architecture
 
 Cost per Automated:         $2```
 
-### Tech Stack
-
 Cost Savings:               96%Kamco/
 
-**Frontend**
+├── frontend/                           # React + TypeScript Application
 
-- React 18 + TypeScript├── frontend/                           # React + TypeScript Application
+Annual Savings (10,000 screenings/month):  $47.5M+│   ├── src/
 
-- Vite (build tool)
+```│   │   ├── pages/
 
-- Tailwind CSS + shadcn/uiAnnual Savings (10,000 screenings/month):  $47.5M+│   ├── src/
+│   │   │   ├── Login.tsx              # Authentication with role-based access
 
-- React Router v7
+---│   │   │   ├── Dashboard.tsx          # Main dashboard with stats
 
-- Axios```│   │   ├── pages/
-
-
-
-**Backend**│   │   │   ├── Login.tsx              # Authentication with role-based access
-
-- FastAPI (Python 3.13)
-
-- SQLAlchemy ORM---│   │   │   ├── Dashboard.tsx          # Main dashboard with stats
-
-- SQLite / PostgreSQL
-
-- JWT authentication│   │   │   └── screening/
-
-- bcrypt password hashing
+│   │   │   └── screening/
 
 ## 🚀 Key Features│   │   │       ├── ScreeningQueuePage.tsx  # Queue management & bulk review
 
-**Deployment**
+│   │   │       └── ScreeningResultsPage.tsx # Historical results
 
-- Vercel (frontend)│   │   │       └── ScreeningResultsPage.tsx # Historical results
+### 1. 🔍 Intelligent Screening Engine│   │   ├── components/
 
-- Railway (backend)
+│   │   │   ├── review/
 
-- PostgreSQL (production database)### 1. 🔍 Intelligent Screening Engine│   │   ├── components/
+Our proprietary fuzzy matching algorithm uses multiple strategies to catch suspicious matches:│   │   │   │   ├── ReviewModal.tsx         # Single item review
 
+│   │   │   │   ├── BulkReviewModal.tsx     # Bulk review operations
 
+```python│   │   │   │   ├── EmailReportModal.tsx    # Email report generation
 
-### Project Structure│   │   │   ├── review/
+✓ Name Similarity (Levenshtein Distance)│   │   │   │   ├── ItemDetailReport.tsx    # Detailed item report
 
+  - "Mohammed Ali" matches "Muhammad Ali" (95%)│   │   │   │   └── CumulativeReport.tsx    # Cumulative stats report
 
+  - "John Smith" matches "Jon Smyth" (89%)│   │   │   ├── dashboard/
 
-```Our proprietary fuzzy matching algorithm uses multiple strategies to catch suspicious matches:│   │   │   │   ├── ReviewModal.tsx         # Single item review
+  │   │   │   │   └── StatsCards.tsx          # Statistics display
 
-fraud-detect/
+✓ Phonetic Matching (Soundex)│   │   │   └── ui/                         # shadcn/ui components
 
-├── backend/│   │   │   │   ├── BulkReviewModal.tsx     # Bulk review operations
+  - Handles pronunciation variations│   │   ├── services/
 
-│   ├── routes/          # API endpoints
+  - Language-agnostic transliteration│   │   │   ├── authService.ts              # Authentication API
 
-│   ├── models/          # Database models```python│   │   │   │   ├── EmailReportModal.tsx    # Email report generation
-
-│   ├── utils/           # Business logic
-
-│   ├── middleware/      # Auth & audit✓ Name Similarity (Levenshtein Distance)│   │   │   │   ├── ItemDetailReport.tsx    # Detailed item report
-
-│   ├── tests/           # 66+ tests
-
-│   └── database/        # SQLite DB  - "Mohammed Ali" matches "Muhammad Ali" (95%)│   │   │   │   └── CumulativeReport.tsx    # Cumulative stats report
-
-│
-
-├── frontend/  - "John Smith" matches "Jon Smyth" (89%)│   │   │   ├── dashboard/
-
-│   ├── src/
-
-│   │   ├── components/  # UI components  │   │   │   │   └── StatsCards.tsx          # Statistics display
-
-│   │   ├── pages/       # Route pages
-
-│   │   └── services/    # API services✓ Phonetic Matching (Soundex)│   │   │   └── ui/                         # shadcn/ui components
-
-│   └── public/          # Static assets
-
-│  - Handles pronunciation variations│   │   ├── services/
-
-└── docs/
-
-    ├── guides/          # User guides  - Language-agnostic transliteration│   │   │   ├── authService.ts              # Authentication API
-
-    ├── deployment/      # Deploy instructions
-
-    └── development/     # Dev docs  │   │   │   └── api.ts                      # API client
-
-```
+  │   │   │   └── api.ts                      # API client
 
 ✓ Token Analysis│   │   └── AppRouter.tsx                   # Protected routes
 
----
-
   - "Smith, John" = "John Smith" (100%)│   └── package.json
-
-## 🔐 Security
 
   - Word order independence│
 
-### Authentication
+  ├── backend/                            # FastAPI Application
 
-- JWT tokens (15-min access, 7-day refresh)  ├── backend/                            # FastAPI Application
-
-- httpOnly cookies for refresh tokens
-
-- Token rotation on each use✓ Exact Identifier Matching│   ├── main.py                        # Application entry point
-
-- Automatic token blacklisting on logout
+✓ Exact Identifier Matching│   ├── main.py                        # Application entry point
 
   - Civil ID exact/partial match│   ├── requirements.txt               # Python dependencies
 
-### Password Security
+  - Passport number cross-reference│   ├── database/
 
-- bcrypt with 12 salt rounds  - Passport number cross-reference│   ├── database/
+  - Date of birth verification│   │   ├── connection.py              # SQLite connection & session
 
-- Minimum 8 characters
+```│   │   └── kamco.db                   # SQLite database
 
-- Mixed case + numbers required  - Date of birth verification│   │   ├── connection.py              # SQLite connection & session
+│   ├── models/
 
-
-
-### Protection Mechanisms```│   │   └── kamco.db                   # SQLite database
-
-- SQL injection prevention (parameterized queries)
-
-- XSS protection (input sanitization)│   ├── models/
-
-- CSRF protection (SameSite cookies)
-
-- Rate limiting (5 failed attempts = 15-min lockout)**Risk Classification:**│   │   ├── database.py                # Kamco entity models (Client/Vendor/Staff/Other)
-
-- CORS whitelist
+**Risk Classification:**│   │   ├── database.py                # Kamco entity models (Client/Vendor/Staff/Other)
 
 │   │   ├── blacklist.py               # Blacklist entry model
 
----
-
 | Level | Score Range | Action Required | Color |│   │   └── auth.py                    # User authentication models
-
-## 📚 API Documentation
 
 |-------|------------|-----------------|-------|│   ├── routes/
 
-### Base URLs
-
 | 🔴 **CRITICAL** | 95-100% | Immediate escalation | Red |│   │   ├── auth.py                    # Authentication endpoints
 
-- **Development**: `http://127.0.0.1:8000/api`
-
-- **Production**: `https://kamco-api.railway.app/api`| 🟠 **HIGH** | 85-94% | Mandatory review | Orange |│   │   ├── upload.py                  # File upload & parsing
-
-- **Interactive Docs**: `/docs` (Swagger UI)
+| 🟠 **HIGH** | 85-94% | Mandatory review | Orange |│   │   ├── upload.py                  # File upload & parsing
 
 | 🟡 **MEDIUM** | 75-84% | Standard review | Yellow |│   │   ├── screening.py               # Screening & queue management
 
-### Key Endpoints
-
 | 🔵 **LOW** | 60-74% | Optional review | Blue |│   │   └── review_manager.py          # Review workflow endpoints
 
-**Authentication**
+│   └── utils/
 
-```│   └── utils/
+### 2. 🔄 Multi-Stage Review Workflow│       ├── auth.py                    # JWT & password utilities
 
-POST   /api/auth/login
-
-POST   /api/auth/register### 2. 🔄 Multi-Stage Review Workflow│       ├── auth.py                    # JWT & password utilities
-
-POST   /api/auth/refresh
-
-POST   /api/auth/logout│       ├── email_service.py           # Email notification system
-
-```
+│       ├── email_service.py           # Email notification system
 
 **Segregation of Duties (SoD) Enforced:**│       ├── excel_parser.py            # Excel file parsing
 
-**Screening**
+│       └── fuzzy_matcher.py           # Fuzzy matching engine
 
-```│       └── fuzzy_matcher.py           # Fuzzy matching engine
+```│
 
-POST   /api/screening/v2/upload-blacklist
-
-GET    /api/screening/v2/pending-matches```│
-
-POST   /api/screening/v2/decision
-
-POST   /api/screening/v2/individual-screen┌─────────────────────────────────────────────────────────────────┐├── test_data/                         # Test files
-
-```
+┌─────────────────────────────────────────────────────────────────┐├── test_data/                         # Test files
 
 │                    STAGE 1: SCREENER REVIEW                      ││   ├── kamco_all_entities.csv        # Sample Kamco entities (50+)
 
-**Review**
+│  ┌──────────────────────────────────────────────────────────┐   ││   └── blacklist_with_matches.csv    # Sample blacklist with known matches
 
-```│  ┌──────────────────────────────────────────────────────────┐   ││   └── blacklist_with_matches.csv    # Sample blacklist with known matches
+│  │ • Upload blacklist files (CSV/Excel)                     │   ││
 
-GET    /api/review/checker/queue
-
-POST   /api/review/checker/review│  │ • Upload blacklist files (CSV/Excel)                     │   ││
-
-GET    /api/review/finalizer/queue
-
-POST   /api/review/finalizer/finalize│  │ • Auto-screening against Kamco database                  │   │├── docs/                              # Documentation
-
-```
+│  │ • Auto-screening against Kamco database                  │   │├── docs/                              # Documentation
 
 │  │ • Review matches with similarity scores                  │   ││   ├── FRONTEND_REVIEW_SYSTEM.md     # Frontend component guide
 
-**Reports & Audit**
+│  │ • Decision: CLEAR / FLAG / ESCALATE                      │   ││   ├── REVIEW_SYSTEM_GUIDE.md        # Complete review workflow guide
 
-```│  │ • Decision: CLEAR / FLAG / ESCALATE                      │   ││   ├── REVIEW_SYSTEM_GUIDE.md        # Complete review workflow guide
-
-GET    /api/reports/screening-summary
-
-GET    /api/audit/logs│  │ • Add screening notes and evidence                       │   ││   ├── IMPLEMENTATION_COMPLETE.md     # Technical implementation details
-
-```
+│  │ • Add screening notes and evidence                       │   ││   ├── IMPLEMENTATION_COMPLETE.md     # Technical implementation details
 
 │  └──────────────────────────────────────────────────────────┘   ││   └── VISUAL_OVERVIEW.md            # Visual UI/UX guide
 
-### Example: Upload Blacklist
-
 └─────────────────────────────────────────────────────────────────┘│
 
-```bash
+                              ↓└── README.md                          # This file
 
-curl -X POST http://127.0.0.1:8000/api/screening/v2/upload-blacklist \                              ↓└── README.md                          # This file
-
-  -H "Authorization: Bearer YOUR_TOKEN" \
-
-  -F "file=@blacklist.csv"                    [If FLAGGED or ESCALATED]```
-
-```
+                    [If FLAGGED or ESCALATED]```
 
                               ↓
 
-**Response:**
+┌─────────────────────────────────────────────────────────────────┐## 📊 Database Schema
 
-```json┌─────────────────────────────────────────────────────────────────┐## 📊 Database Schema
+│                    STAGE 2: CHECKER REVIEW                       │
 
-{
+│  ┌──────────────────────────────────────────────────────────┐   │### Pre-loaded Kamco Entities (50+ records)
 
-  "success": true,│                    STAGE 2: CHECKER REVIEW                       │
+│  │ • View screener's decision and notes                     │   │- **Clients** (10 records) - Investment clients with account numbers, actors, countries
 
-  "upload_id": 42,
+│  │ • Access full match comparison data                      │   │- **Vendors** (10 records) - Service providers with vendor IDs, actors, categories
 
-  "filename": "blacklist.csv",│  ┌──────────────────────────────────────────────────────────┐   │### Pre-loaded Kamco Entities (50+ records)
+│  │ • Cross-verify with external sources                     │   │- **Staff** (15 records) - Employees with employee IDs, departments, positions
 
-  "total_entries": 1247,
+│  │ • Decision: APPROVE / REJECT / REQUEST_INFO              │   │- **Others** (15 records) - Banks, auditors, legal firms, regulatory bodies
 
-  "matches_found": 89,│  │ • View screener's decision and notes                     │   │- **Clients** (10 records) - Investment clients with account numbers, actors, countries
+│  │ • Add verification notes                                 │   │
 
-  "match_summary": {
+│  └──────────────────────────────────────────────────────────┘   │### Dynamic Tables
 
-    "critical": 12,│  │ • Access full match comparison data                      │   │- **Vendors** (10 records) - Service providers with vendor IDs, actors, categories
+└─────────────────────────────────────────────────────────────────┘- **blacklist_entries** - Uploaded sanctions lists (Arabic + English names, Civil IDs, etc.)
 
-    "high": 34,
+                              ↓- **flagged_items** - Items flagged for review (status: pending/approved/rejected/escalated)
 
-    "medium": 31,│  │ • Cross-verify with external sources                     │   │- **Staff** (15 records) - Employees with employee IDs, departments, positions
+                         [If APPROVED]- **logbook** - Complete audit trail of all screening decisions
 
-    "low": 12
+                              ↓- **users** - Authentication with role-based permissions
 
-  }│  │ • Decision: APPROVE / REJECT / REQUEST_INFO              │   │- **Others** (15 records) - Banks, auditors, legal firms, regulatory bodies
+┌─────────────────────────────────────────────────────────────────┐
 
-}
+│                   STAGE 3: FINALIZER REVIEW                      │### Entity Fields
 
-```│  │ • Add verification notes                                 │   │
+│  ┌──────────────────────────────────────────────────────────┐   │
 
+│  │ • Final compliance review                                │   │**KamcoClient**:
 
+│  │ • View complete decision history                         │   │- name, account_number, date_opened, actor_name (representative), country, notes
 
----│  └──────────────────────────────────────────────────────────┘   │### Dynamic Tables
+│  │ • Access all supporting documentation                    │   │
 
+│  │ • Decision: FINAL_APPROVE / OVERRIDE                     │   │**KamcoVendor**:
 
-
-## 🧪 Testing└─────────────────────────────────────────────────────────────────┘- **blacklist_entries** - Uploaded sanctions lists (Arabic + English names, Civil IDs, etc.)
-
-
-
-### Run Tests                              ↓- **flagged_items** - Items flagged for review (status: pending/approved/rejected/escalated)
-
-
-
-```bash                         [If APPROVED]- **logbook** - Complete audit trail of all screening decisions
-
-cd backend
-
-source .venv/bin/activate                              ↓- **users** - Authentication with role-based permissions
-
-pytest tests/ -v
-
-```┌─────────────────────────────────────────────────────────────────┐
-
-
-
-### Test Coverage│                   STAGE 3: FINALIZER REVIEW                      │### Entity Fields
-
-
-
-- **Total Tests**: 66+│  ┌──────────────────────────────────────────────────────────┐   │
-
-- **Coverage**: 90%
-
-- **Test Types**: Authentication, screening, workflow, security│  │ • Final compliance review                                │   │**KamcoClient**:
-
-
-
-### Test Accounts│  │ • View complete decision history                         │   │- name, account_number, date_opened, actor_name (representative), country, notes
-
-
-
-| Username | Password | Role |│  │ • Access all supporting documentation                    │   │
-
-|----------|----------|------|
-
-| `screener_test` | `Screener123` | Screener |│  │ • Decision: FINAL_APPROVE / OVERRIDE                     │   │**KamcoVendor**:
-
-| `checker_test` | `Checker123` | Checker |
-
-| `finalizer_test` | `Finalizer123` | Finalizer |│  │ • Generate compliance reports                            │   │- name, vendor_id, date_registered, actor_name (agent), category, notes
-
-| `admin` | `Admin123` | Admin |
+│  │ • Generate compliance reports                            │   │- name, vendor_id, date_registered, actor_name (agent), category, notes
 
 │  └──────────────────────────────────────────────────────────┘   │
 
----
-
 └─────────────────────────────────────────────────────────────────┘**KamcoStaff**:
-
-## 🌐 Deployment
 
 ```- name, employee_id, department, position, hire_date, notes
 
-### Frontend (Vercel)
 
 
+### 3. 📤 Blacklist Management**KamcoOther**:
 
-1. Connect GitHub repository to Vercel
-
-2. Set build command: `npm run build`### 3. 📤 Blacklist Management**KamcoOther**:
-
-3. Set output directory: `dist`
-
-4. Add environment variable: `VITE_API_URL=https://your-backend.railway.app/api`- name, category, reference_id, description, notes
-
-5. Deploy
+- name, category, reference_id, description, notes
 
 **Supported Features:**
 
-### Backend (Railway)
-
 **BlacklistEntry**:
 
-1. Connect GitHub repository to Railway
+- ✅ **Multiple File Formats**: CSV, Excel (.xlsx, .xls)- name_arabic, name_english, civil_id, passport_number, nationality, country
 
-2. Set root directory: `backend`- ✅ **Multiple File Formats**: CSV, Excel (.xlsx, .xls)- name_arabic, name_english, civil_id, passport_number, nationality, country
+- ✅ **UTF-8 Support**: Full Arabic/English bilingual support- entity_type, decree_number, list_date, source, category, risk_level, reason, notes
 
-3. Add PostgreSQL database
+- ✅ **Flexible Column Mapping**: Auto-detect common field names
 
-4. Set environment variables:- ✅ **UTF-8 Support**: Full Arabic/English bilingual support- entity_type, decree_number, list_date, source, category, risk_level, reason, notes
+- ✅ **Bulk Upload**: Process 10,000+ entries in seconds## 🎯 Key Features
 
-   ```
+- ✅ **Version Control**: Track blacklist updates with timestamps
 
-   DATABASE_URL=postgresql://...- ✅ **Flexible Column Mapping**: Auto-detect common field names
+- ✅ **Auto-Screening**: Immediate matching upon upload### ✅ Automated Screening
 
-   JWT_SECRET_KEY=your-secret-key
+- **Excel Import** - Flexible parsing supporting multiple formats (Arabic/English names, Civil IDs, etc.)
 
-   ACCESS_TOKEN_EXPIRE_MINUTES=15- ✅ **Bulk Upload**: Process 10,000+ entries in seconds## 🎯 Key Features
+**Example CSV Format:**- **Fuzzy Matching** - 85% threshold using token_sort_ratio algorithm
 
-   REFRESH_TOKEN_EXPIRE_DAYS=7
+- **Auto-Flagging** - Automatic flagging of matches upon blacklist upload
 
-   ALLOWED_ORIGINS=https://your-frontend.vercel.app- ✅ **Version Control**: Track blacklist updates with timestamps
+```csv- **Duplicate Prevention** - Smart deduplication against historical logbook
 
-   ```
+name_english,name_arabic,civil_id,passport_number,nationality,date_of_birth
 
-5. Deploy- ✅ **Auto-Screening**: Immediate matching upon upload### ✅ Automated Screening
+John Doe,جون دو,123456789,P123456,USA,1980-01-15### ✅ Review Workflows  
 
+Jane Smith,جين سميث,987654321,P789012,UK,1992-05-22- **Single Review** - Review individual items with detailed comparison
 
+```- **Bulk Review** - Review multiple items simultaneously with batch operations
 
----- **Excel Import** - Flexible parsing supporting multiple formats (Arabic/English names, Civil IDs, etc.)
+- **Three-Tier System** - Screener → Checker → Finalizer workflow
 
+### 4. 🔎 Individual Screening- **Decision Options** - Approve, Reject, Escalate, Request Recheck
 
 
-## 📊 Performance & ROI**Example CSV Format:**- **Fuzzy Matching** - 85% threshold using token_sort_ratio algorithm
 
+**Ad-Hoc Person Lookup** - Perfect for:### ✅ Reporting & Analytics
 
+- 💼 Walk-in customer verification- **Item Detail Reports** - Individual item analysis with match details
 
-### Time Savings- **Auto-Flagging** - Automatic flagging of matches upon blacklist upload
+- 🤝 Vendor due diligence- **Cumulative Reports** - Aggregate statistics across selected items
 
+- 👤 Employee background checks- **Email Notifications** - Automated alerts for upload completion and review actions
 
+- 💰 Transaction monitoring- **Export Functionality** - Generate and download detailed reports
 
-| Task | Manual | Automated | Improvement |```csv- **Duplicate Prevention** - Smart deduplication against historical logbook
 
-|------|--------|-----------|-------------|
 
-| Screen 1,000 entries | 8 hours | 5 minutes | **96x faster** |name_english,name_arabic,civil_id,passport_number,nationality,date_of_birth
+**Search Interface:**### ✅ User Experience
 
-| Review 100 matches | 2 hours | 15 minutes | **8x faster** |
+```typescript- **Modern UI** - Clean, responsive interface with Tailwind CSS + shadcn/ui
 
-| Generate report | 1 hour | 30 seconds | **120x faster** |John Doe,جون دو,123456789,P123456,USA,1980-01-15### ✅ Review Workflows  
+Input: Name (EN/AR), Civil ID, Passport, Nationality, DOB- **Real-time Updates** - Instant feedback on all actions
 
+Output: Ranked matches with similarity scores and risk levels- **Protected Routes** - JWT-based authentication with automatic token refresh
 
+```- **Role-Based Access** - Different permissions for Screeners, Checkers, Finalizers
 
-### Cost SavingsJane Smith,جين سميث,987654321,P789012,UK,1992-05-22- **Single Review** - Review individual items with detailed comparison
 
 
+### 5. 📊 Real-Time Dashboard### ✅ Technical Excellence
 
-``````- **Bulk Review** - Review multiple items simultaneously with batch operations
+- **Type Safety** - Full TypeScript implementation on frontend
 
-Manual:     $50 per screening × 10,000/month = $500,000/month
+**Key Performance Indicators:**- **API Documentation** - Auto-generated Swagger/OpenAPI docs at `/docs`
 
-Automated:  $2 per screening × 10,000/month = $20,000/month- **Three-Tier System** - Screener → Checker → Finalizer workflow
+- **Error Handling** - Comprehensive error handling with user-friendly messages
 
+```- **Audit Trail** - Complete logbook of all screening decisions
 
-
-Monthly Savings:  $480,000### 4. 🔎 Individual Screening- **Decision Options** - Approve, Reject, Escalate, Request Recheck
-
-Annual Savings:   $5,760,000+
-
-```
-
-
-
-### Accuracy Improvement**Ad-Hoc Person Lookup** - Perfect for:### ✅ Reporting & Analytics
-
-
-
-- **False Negatives**: 5% → <1% (80% reduction)- 💼 Walk-in customer verification- **Item Detail Reports** - Individual item analysis with match details
-
-- **Match Accuracy**: 75% → 95%+ (27% improvement)
-
-- **Compliance**: 70% → 100% (complete audit trail)- 🤝 Vendor due diligence- **Cumulative Reports** - Aggregate statistics across selected items
-
-
-
----- 👤 Employee background checks- **Email Notifications** - Automated alerts for upload completion and review actions
-
-
-
-## 📖 Documentation- 💰 Transaction monitoring- **Export Functionality** - Generate and download detailed reports
-
-
-
-- **Quick Start**: [docs/guides/QUICK_START.md](docs/guides/QUICK_START.md)
-
-- **User Credentials**: [docs/guides/CREDENTIALS.md](docs/guides/CREDENTIALS.md)
-
-- **Security Guide**: [docs/guides/AUTH_SECURITY_GUIDE.md](docs/guides/AUTH_SECURITY_GUIDE.md)**Search Interface:**### ✅ User Experience
-
-- **Deployment Guide**: [docs/deployment/BACKEND_DEPLOYMENT.md](docs/deployment/BACKEND_DEPLOYMENT.md)
-
-- **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)```typescript- **Modern UI** - Clean, responsive interface with Tailwind CSS + shadcn/ui
-
-
-
----Input: Name (EN/AR), Civil ID, Passport, Nationality, DOB- **Real-time Updates** - Instant feedback on all actions
-
-
-
-## 🤝 ContributingOutput: Ranked matches with similarity scores and risk levels- **Protected Routes** - JWT-based authentication with automatic token refresh
-
-
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:```- **Role-Based Access** - Different permissions for Screeners, Checkers, Finalizers
-
-
-
-- Code of conduct
-
-- Development workflow
-
-- Coding standards### 5. 📊 Real-Time Dashboard### ✅ Technical Excellence
-
-- Testing guidelines
-
-- Pull request process- **Type Safety** - Full TypeScript implementation on frontend
-
-
-
-### Quick Contribution Steps**Key Performance Indicators:**- **API Documentation** - Auto-generated Swagger/OpenAPI docs at `/docs`
-
-
-
-1. Fork the repository- **Error Handling** - Comprehensive error handling with user-friendly messages
-
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-
-3. Make changes and add tests```- **Audit Trail** - Complete logbook of all screening decisions
-
-4. Commit: `git commit -m 'feat: Add amazing feature'`
-
-5. Push: `git push origin feature/amazing-feature`╔══════════════════════════════════════════════════════════════╗
-
-6. Open Pull Request
+╔══════════════════════════════════════════════════════════════╗
 
 ║                    SCREENING OVERVIEW                         ║## 🔗 API Endpoints
 
----
-
 ╠══════════════════════════════════════════════════════════════╣
-
-## 📄 License
 
 ║  Total Screenings:         12,458                           ║### Authentication
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
-
 ║  Flagged Items:            342 (2.7%)                       ║```
 
-```
-
-MIT License - Copyright (c) 2026 Ayaan Gazali║  Approved:                 11,890 (95.4%)                   ║POST /api/auth/login              # User login (returns JWT tokens)
-
-```
+║  Approved:                 11,890 (95.4%)                   ║POST /api/auth/login              # User login (returns JWT tokens)
 
 ║  Rejected:                 226 (1.8%)                       ║POST /api/auth/refresh            # Refresh access token
 
----
-
 ║  Pending Review:           342                              ║POST /api/auth/logout             # User logout
-
-## 👥 Team
 
 ║                                                              ║GET  /api/auth/me                 # Get current user info
 
-**Developer**: Ayaan Gazali  
+║  Risk Distribution:                                          ║```
 
-**GitHub**: [@ayaangazali](https://github.com/ayaangazali)  ║  Risk Distribution:                                          ║```
+║  🔴 Critical: 12    🟠 High: 34    🟡 Medium: 43          ║
 
-**Project**: Kamco Fraud Detection System  
+╚══════════════════════════════════════════════════════════════╝### File Upload & Screening
 
-**Date**: January 2026║  🔴 Critical: 12    🟠 High: 34    🟡 Medium: 43          ║
+``````
 
+POST /api/upload/entities         # Upload Kamco entities CSV
 
+### 6. 🛡️ Audit & CompliancePOST /api/upload/blacklist        # Upload blacklist (auto-screens)
 
----╚══════════════════════════════════════════════════════════════╝### File Upload & Screening
+GET  /api/upload/history          # Upload history
 
+Every action is logged with:```
 
+- ✅ **Immutable Records**: Append-only log structure
 
-## 🙏 Acknowledgments``````
+- ✅ **User Attribution**: Every action tied to authenticated user### Screening & Queue Management  
 
+- ✅ **Timestamp Precision**: Millisecond-level accuracy```
 
+- ✅ **Export Capabilities**: CSV, JSON, PDF formatsGET  /api/screening/queue         # Get pending flagged items
 
-- FastAPI - High-performance web frameworkPOST /api/upload/entities         # Upload Kamco entities CSV
+- ✅ **Regulatory Reports**: Pre-formatted compliance exportsGET  /api/screening/results       # Get historical screening results
 
-- React & TypeScript - Modern UI development
+POST /api/screening/run           # Manual screening run
 
-- shadcn/ui - Beautiful component library### 6. 🛡️ Audit & CompliancePOST /api/upload/blacklist        # Upload blacklist (auto-screens)
+---GET  /api/screening/stats         # Get screening statistics
 
-- fuzzywuzzy - Fuzzy string matching
-
-- Vercel & Railway - Hosting platformsGET  /api/upload/history          # Upload history
-
-
-
----Every action is logged with:```
-
-
-
-## 📞 Support- ✅ **Immutable Records**: Append-only log structure
-
-
-
-- **Email**: support@kamco.com- ✅ **User Attribution**: Every action tied to authenticated user### Screening & Queue Management  
-
-- **Issues**: [GitHub Issues](https://github.com/ayaangazali/fraud-detect/issues)
-
-- **Documentation**: [Full Docs](https://github.com/ayaangazali/fraud-detect/wiki)- ✅ **Timestamp Precision**: Millisecond-level accuracy```
-
-
-
----- ✅ **Export Capabilities**: CSV, JSON, PDF formatsGET  /api/screening/queue         # Get pending flagged items
-
-
-
-## 🗺️ Roadmap- ✅ **Regulatory Reports**: Pre-formatted compliance exportsGET  /api/screening/results       # Get historical screening results
-
-
-
-### Current (v1.0) ✅POST /api/screening/run           # Manual screening run
-
-- Core screening engine
-
-- Multi-stage workflow---GET  /api/screening/stats         # Get screening statistics
-
-- Audit logging
-
-- Individual screening```
-
-- Role-based access
+```
 
 ## 🏗️ System Architecture
 
-### Q2 2026
+### Review Management
 
-- Machine learning integration### Review Management
-
-- Mobile app (iOS/Android)
-
-- Advanced reporting### High-Level Architecture```
-
-- Real-time notifications
+### High-Level Architecture```
 
 POST /api/review/single           # Review single item
 
-### Q3 2026
+```POST /api/review/bulk             # Bulk review multiple items
 
-- Multi-tenant support```POST /api/review/bulk             # Bulk review multiple items
-
-- API integration with external blacklists
-
-- Blockchain audit trail┌────────────────────────────────────────────────────────────────┐POST /api/review/escalate         # Escalate item to higher authority
-
-- Predictive risk scoring
+┌────────────────────────────────────────────────────────────────┐POST /api/review/escalate         # Escalate item to higher authority
 
 │                      PRESENTATION LAYER                         │POST /api/review/recheck          # Request recheck
 
-### Q4 2026
+│  ┌────────────────────────────────────────────────────────┐   │GET  /api/review/history          # Get review history
 
-- Regulatory compliance packs (OFAC, UN, EU)│  ┌────────────────────────────────────────────────────────┐   │GET  /api/review/history          # Get review history
-
-- Fraud network analysis
-
-- SSO integration│  │            React Frontend (Vercel)                      │   │POST /api/review/email-report     # Generate & email report
-
-- Advanced AI matching
+│  │            React Frontend (Vercel)                      │   │POST /api/review/email-report     # Generate & email report
 
 │  │  Dashboard | Screening | Reviews | Reports | Audit     │   │GET  /api/review/item-report/:id  # Get detailed item report
 
----
-
 │  └─────────────────────────┬──────────────────────────────┘   │POST /api/review/cumulative-report # Get cumulative statistics
-
-<div align="center">
 
 └────────────────────────────┼───────────────────────────────────┘```
 
-### ⭐ Star this repository if you found it helpful!
-
                              │ REST API (JWT Auth)
-
-**Built with ❤️ for financial compliance and security**
 
 ┌────────────────────────────▼───────────────────────────────────┐### System
 
-[⬆ Back to Top](#-kamco-fraud-detection-system)
-
 │                     APPLICATION LAYER                           │```
-
-</div>
 
 │  ┌────────────────────────────────────────────────────────┐   │GET  /                           # Root endpoint
 
