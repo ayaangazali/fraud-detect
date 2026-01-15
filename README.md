@@ -1,200 +1,397 @@
-# 🛡️ Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection & AML/KYC Compliance System# 🔍 Kamco Compliance Screening System
+# Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection System# 🛡️ Kamco Fraud Detection & AML/KYC Compliance System# 🔍 Kamco Compliance Screening System
 
 
 
-**Enterprise-grade AML/KYC compliance system for financial institutions**
+An enterprise-grade AML/KYC compliance platform that automates sanctions screening for financial institutions.
 
 
 
----<div align="center">
+## What It Does**Enterprise-grade AML/KYC compliance system for financial institutions**
 
 
 
-## 📖 What Is This?
+This system screens clients, vendors, and staff against regulatory blacklists using fuzzy matching algorithms. It catches name variations, typos, and transliterations that manual review would miss.
 
 
 
-Kamco Fraud Detection System is a **production-ready** Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance platform. It automates screening of clients, vendors, and staff against regulatory blacklists using advanced fuzzy matching algorithms.![License](https://img.shields.io/badge/license-MIT-blue.svg)<div align="center">
+**Key Benefits:**---<div align="center">
+
+- Screens 1,000 entries in 5 minutes instead of 8 hours
+
+- 95%+ match accuracy with intelligent fuzzy matching
+
+- Complete audit trail for regulatory compliance
+
+- 3-tier review process ensures no single point of failure## 📖 What Is This?
 
 
 
-**The Problem:**![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)
-
-- Manual screening takes 8 hours for 1,000 entries
-
-- High false-negative rate due to typos and transliterations![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)
-
-- No audit trail for regulatory compliance
-
-- Single-point approval creates risk![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
+## Quick Start
 
 
 
-**Our Solution:**![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)![License](https://img.shields.io/badge/license-MIT-blue.svg)<div align="center">> **✅ ALL PHASES COMPLETE** - Production-ready sanctions screening with comprehensive review workflows, bulk operations, user management, email notifications, and detailed reporting.
-
-- Automated screening in 5 minutes (96x faster)
-
-- 95%+ accuracy with fuzzy matching
-
-- Complete audit trail for compliance
-
-- 3-tier review workflow (Screener → Checker → Finalizer)**Enterprise-grade AML/KYC compliance system for financial institutions**![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)
+You need Python 3.13+, Node.js 20+, and Git installed.Kamco Fraud Detection System is a **production-ready** Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance platform. It automates screening of clients, vendors, and staff against regulatory blacklists using advanced fuzzy matching algorithms.![License](https://img.shields.io/badge/license-MIT-blue.svg)<div align="center">
 
 
 
----
-
-
-
-## 🚀 Quick Start[Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation) • [API](#-api-documentation)![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)
-
-
-
-**Prerequisites:** Python 3.13+, Node.js 20+, Git
-
-
-
-### Step 1: Clone</div>![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
+**Clone the project:**
 
 ```bash
 
-git clone https://github.com/ayaangazali/fraud-detect.git
+git clone https://github.com/ayaangazali/fraud-detect.git**The Problem:**![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)
 
 cd fraud-detect
 
-```---![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)![License](https://img.shields.io/badge/license-MIT-blue.svg)**Version:** 1.0.0  
+```- Manual screening takes 8 hours for 1,000 entries
 
 
 
-### Step 2: Start Backend
+**Start the backend:**- High false-negative rate due to typos and transliterations![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)
 
 ```bash
 
-cd backend## 📖 Overview
+cd backend- No audit trail for regulatory compliance
 
 python3 -m venv .venv
 
-source .venv/bin/activate
+source .venv/bin/activate- Single-point approval creates risk![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
 
 pip install -r requirements.txt
 
-python3 seed_database.pyKamco Fraud Detection System is a **production-ready** Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance platform. It automates screening of clients, vendors, and staff against regulatory blacklists using advanced fuzzy matching algorithms.### Enterprise-grade AML/KYC compliance system with intelligent screening and multi-stage review workflow![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)**Status:** 🟢 Production Ready  
+python3 seed_database.py
 
 python -m uvicorn main:app --reload --port 8000
 
-```
+```**Our Solution:**![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)![License](https://img.shields.io/badge/license-MIT-blue.svg)<div align="center">> **✅ ALL PHASES COMPLETE** - Production-ready sanctions screening with comprehensive review workflows, bulk operations, user management, email notifications, and detailed reporting.
 
 
 
-### Step 3: Start Frontend (new terminal)### The Problem We Solve
+**Start the frontend (new terminal):**- Automated screening in 5 minutes (96x faster)
 
 ```bash
 
-cd frontend
+cd frontend- 95%+ accuracy with fuzzy matching
 
 npm install
 
-npm run dev❌ Manual screening takes **8 hours** for 1,000 entries  [Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation) • [API](#-api-documentation)![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)**Completion Date:** January 11, 2026
+npm run dev- Complete audit trail for compliance
 
 ```
 
-❌ High false-negative rate (5%) due to typos and transliterations  
+- 3-tier review workflow (Screener → Checker → Finalizer)**Enterprise-grade AML/KYC compliance system for financial institutions**![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)
 
-### Step 4: Login
+**Login at http://localhost:5173:**
 
-- **URL:** http://localhost:5173❌ No audit trail for regulatory compliance  
+- Username: `admin`
 
-- **Username:** `admin`
-
-- **Password:** `Admin123`❌ Single-point approval creates risk  
-
-
-
----</div>![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
-
-
-
-## ✨ Features### Our Solution
-
-
-
-### 🔍 Intelligent Screening Engine
-
-- Fuzzy name matching handles typos, transliterations, and name variations
-
-- Multi-field matching on Civil ID, passport, DOB, nationality✅ Automated screening in **5 minutes** (96x faster)  
-
-- Risk levels: CRITICAL (95%+), HIGH (85-94%), MEDIUM (75-84%), LOW (60-74%)
-
-- Batch processing supports 10,000+ entries✅ 95%+ accuracy with fuzzy matching  ---![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)A production-ready web application for AML/KYC compliance screening that identifies potential matches between internal Kamco entities (Clients, Vendors, Staff, Others) and blacklist/sanctions lists using fuzzy name matching and intelligent review workflows.
-
-
-
-### 🔄 Multi-Stage Review Workflow✅ Complete audit trail for compliance  
-
-```
-
-SCREENER  →  CHECKER  →  FINALIZER✅ 3-tier review workflow (Screener → Checker → Finalizer)  
-
-   ↓            ↓            ↓
-
- Upload      Review       Final✅ $5.7M+ annual savings potential  
-
- Screen      Approve      Decision
-
- Flag        Reject       Report## 📖 Overview
-
-```
+- Password: `Admin123`
 
 ---
 
-### 👥 Role-Based Access Control
+## How It Works
 
 
+
+**Step 1 - Upload:** Compliance team uploads a blacklist file (CSV or Excel) containing names to screen against.
+
+## 🚀 Quick Start[Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation) • [API](#-api-documentation)![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)
+
+**Step 2 - Auto-Screen:** System automatically compares every blacklist entry against all Kamco entities (clients, vendors, staff) using fuzzy matching. Matches above 85% similarity get flagged.
+
+
+
+**Step 3 - Review:** Flagged items go through a 3-tier review:
+
+- Screener reviews and flags suspicious matches**Prerequisites:** Python 3.13+, Node.js 20+, Git
+
+- Checker verifies and approves/rejects
+
+- Finalizer makes the final compliance decision
+
+
+
+**Step 4 - Audit:** Every action is logged with user, timestamp, and decision notes for regulatory compliance.### Step 1: Clone</div>![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
+
+
+
+## Features```bash
+
+
+
+**Intelligent Matching**git clone https://github.com/ayaangazali/fraud-detect.git
+
+- Catches "Mohammed" vs "Muhammad" (95% match)
+
+- Handles Arabic/English transliterationscd fraud-detect
+
+- Matches partial names and variations
+
+- Risk levels: Critical (95%+), High (85-94%), Medium (75-84%), Low (60-74%)```---![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)![License](https://img.shields.io/badge/license-MIT-blue.svg)**Version:** 1.0.0  
+
+
+
+**Review Workflow**
+
+- Single item review with detailed match comparison
+
+- Bulk review for processing multiple items at once### Step 2: Start Backend
+
+- Escalation path for complex cases
+
+- Email notifications when reviews complete```bash
+
+
+
+**Role-Based Access**cd backend## 📖 Overview
+
+- Screeners can upload and flag items
+
+- Checkers can approve or reject flagged items  python3 -m venv .venv
+
+- Finalizers have final decision authority
+
+- Admins have full system accesssource .venv/bin/activate
+
+
+
+**Dashboard & Reports**pip install -r requirements.txt
+
+- Real-time KPIs and statistics
+
+- Risk distribution chartspython3 seed_database.pyKamco Fraud Detection System is a **production-ready** Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance platform. It automates screening of clients, vendors, and staff against regulatory blacklists using advanced fuzzy matching algorithms.### Enterprise-grade AML/KYC compliance system with intelligent screening and multi-stage review workflow![Python](https://img.shields.io/badge/Python-3.13-green.svg?logo=python)**Status:** 🟢 Production Ready  
+
+- Activity feed showing recent decisions
+
+- Exportable compliance reportspython -m uvicorn main:app --reload --port 8000
+
+
+
+## Test Accounts```
+
+
+
+Use these to test different roles:
+
+
+
+- `screener_test` / `password123` - Screener role### Step 3: Start Frontend (new terminal)### The Problem We Solve
+
+- `checker_test` / `password123` - Checker role
+
+- `finalizer_test` / `password123` - Finalizer role```bash
+
+- `admin` / `Admin123` - Admin role
+
+cd frontend
+
+## Tech Stack
+
+npm install
+
+**Frontend:** React 18 with TypeScript, Vite, Tailwind CSS, shadcn/ui components
+
+npm run dev❌ Manual screening takes **8 hours** for 1,000 entries  [Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation) • [API](#-api-documentation)![React](https://img.shields.io/badge/React-18-blue.svg?logo=react)**Completion Date:** January 11, 2026
+
+**Backend:** FastAPI with Python 3.13, SQLAlchemy ORM, SQLite database
+
+```
+
+**Auth:** JWT tokens with bcrypt password hashing
+
+❌ High false-negative rate (5%) due to typos and transliterations  
+
+**Deployment:** Vercel for frontend, Railway for backend
+
+### Step 4: Login
+
+## API Documentation
+
+- **URL:** http://localhost:5173❌ No audit trail for regulatory compliance  
+
+The backend has interactive API docs at http://127.0.0.1:8000/docs
+
+- **Username:** `admin`
+
+**Main Endpoints:**
+
+- `POST /api/auth/login` - Login and get JWT token- **Password:** `Admin123`❌ Single-point approval creates risk  
+
+- `POST /api/screening/v2/upload-blacklist` - Upload blacklist file
+
+- `GET /api/screening/v2/pending-matches` - Get items pending review
+
+- `POST /api/review/checker/review` - Submit review decision
+
+- `GET /api/audit/logs` - Get audit trail---</div>![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?logo=fastapi)
+
+
+
+## Running Tests
+
+
+
+```bash## ✨ Features### Our Solution
+
+cd backend
+
+source .venv/bin/activate
+
+pytest tests/ -v
+
+```### 🔍 Intelligent Screening Engine
+
+
+
+There are 66+ tests covering authentication, screening logic, review workflows, and security.- Fuzzy name matching handles typos, transliterations, and name variations
+
+
+
+## Project Structure- Multi-field matching on Civil ID, passport, DOB, nationality✅ Automated screening in **5 minutes** (96x faster)  
+
+
+
+```- Risk levels: CRITICAL (95%+), HIGH (85-94%), MEDIUM (75-84%), LOW (60-74%)
+
+fraud-detect/
+
+├── backend/- Batch processing supports 10,000+ entries✅ 95%+ accuracy with fuzzy matching  ---![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?logo=typescript)A production-ready web application for AML/KYC compliance screening that identifies potential matches between internal Kamco entities (Clients, Vendors, Staff, Others) and blacklist/sanctions lists using fuzzy name matching and intelligent review workflows.
+
+│   ├── routes/       - API endpoint handlers
+
+│   ├── models/       - Database models
+
+│   ├── utils/        - Business logic (matching, auth, etc)
+
+│   └── tests/        - Test suite### 🔄 Multi-Stage Review Workflow✅ Complete audit trail for compliance  
+
+├── frontend/
+
+│   ├── src/```
+
+│   │   ├── pages/    - React page components
+
+│   │   ├── components/ - Reusable UI componentsSCREENER  →  CHECKER  →  FINALIZER✅ 3-tier review workflow (Screener → Checker → Finalizer)  
+
+│   │   └── services/ - API client code
+
+└── docs/             - Additional documentation   ↓            ↓            ↓
+
+```
+
+ Upload      Review       Final✅ $5.7M+ annual savings potential  
+
+## Deployment
+
+ Screen      Approve      Decision
+
+**Frontend to Vercel:**
+
+1. Connect your GitHub repo Flag        Reject       Report## 📖 Overview
+
+2. Set build command to `npm run build`
+
+3. Set output directory to `dist````
+
+4. Add `VITE_API_URL` environment variable pointing to your backend
+
+---
+
+**Backend to Railway:**
+
+1. Connect your GitHub repo### 👥 Role-Based Access Control
+
+2. Set root directory to `backend`
+
+3. Add a PostgreSQL database
+
+4. Set `DATABASE_URL`, `JWT_SECRET_KEY`, and `ALLOWED_ORIGINS` environment variables
 
 **Screener** - Can upload blacklists, run screenings, flag items
 
+## Security
+
 ## 🚀 Quick Start
 
-**Checker** - Can review flagged items, approve/reject decisions
+- JWT access tokens expire in 15 minutes
 
-Kamco Fraud Detection System is a **production-ready** Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance platform. It automates screening of clients, vendors, and staff against regulatory blacklists using advanced fuzzy matching algorithms.**Enterprise-grade fraud detection system with real-time blacklist screening, multi-stage review workflow, and comprehensive audit trails**## 🎯 Project Overview
+- Refresh tokens rotate on each use**Checker** - Can review flagged items, approve/reject decisions
 
-**Finalizer** - Has final authority, generates compliance reports
+- Passwords hashed with bcrypt (12 rounds)
 
-### Prerequisites
+- SQL injection prevented via parameterized queriesKamco Fraud Detection System is a **production-ready** Anti-Money Laundering (AML) and Know Your Customer (KYC) compliance platform. It automates screening of clients, vendors, and staff against regulatory blacklists using advanced fuzzy matching algorithms.**Enterprise-grade fraud detection system with real-time blacklist screening, multi-stage review workflow, and comprehensive audit trails**## 🎯 Project Overview
 
-**Admin** - Full access to all features
+- Rate limiting blocks brute force attempts
+
+- CORS configured to allow only trusted origins**Finalizer** - Has final authority, generates compliance reports
 
 
+
+## Performance### Prerequisites
+
+
+
+- Processes 1,000 screenings in under 5 minutes**Admin** - Full access to all features
+
+- 95%+ accuracy on name matching
+
+- Reduced false negatives from 5% to under 1%
+
+- Saves approximately $5.7M annually vs manual screening
 
 ### 📊 Real-Time Dashboard
 
+## Documentation
+
 - Live KPIs (total screenings, flagged items, approval rates)- Python 3.13+
 
-- Risk distribution charts
+- [Quick Start Guide](docs/guides/QUICK_START.md)
 
-- Activity feed with recent decisions- Node.js 20+### The Problem
+- [Credentials Reference](docs/guides/CREDENTIALS.md)- Risk distribution charts
 
-- Trend analysis (7-day, 30-day, 90-day)
+- [Security Guide](docs/guides/AUTH_SECURITY_GUIDE.md)
 
-- Git
+- [Backend Deployment](docs/deployment/BACKEND_DEPLOYMENT.md)- Activity feed with recent decisions- Node.js 20+### The Problem
 
-### 🎯 Individual Screening
 
-- Walk-in customer verification
 
-- Vendor due diligence
+## Contributing- Trend analysis (7-day, 30-day, 90-day)
 
-- Employee background checks### Installation Steps
 
-- Transaction monitoring
 
-- ❌ Manual screening takes **8 hours** for 1,000 entries[Features](#-key-features) • [Architecture](#-system-architecture) • [Installation](#-quick-start) • [API Docs](#-api-documentation) • [Testing](#-testing)**Purpose**: Automated sanctions screening system that processes blacklist Excel files, identifies potential matches using fuzzy logic, and provides a comprehensive review workflow for compliance teams.
+1. Fork the repository- Git
 
-### 📝 Complete Audit Trail
+2. Create a feature branch
 
-- User attribution on every action**1. Clone and Navigate**
+3. Make your changes### 🎯 Individual Screening
+
+4. Run tests to make sure nothing broke
+
+5. Submit a pull request- Walk-in customer verification
+
+
+
+## License- Vendor due diligence
+
+
+
+MIT License - see LICENSE file for details.- Employee background checks### Installation Steps
+
+
+
+## Author- Transaction monitoring
+
+
+
+Built by Ayaan Gazali ([@ayaangazali](https://github.com/ayaangazali))- ❌ Manual screening takes **8 hours** for 1,000 entries[Features](#-key-features) • [Architecture](#-system-architecture) • [Installation](#-quick-start) • [API Docs](#-api-documentation) • [Testing](#-testing)**Purpose**: Automated sanctions screening system that processes blacklist Excel files, identifies potential matches using fuzzy logic, and provides a comprehensive review workflow for compliance teams.
+
+
+
+## Support### 📝 Complete Audit Trail
+
+
+
+Open an issue on GitHub if you run into problems or have questions.- User attribution on every action**1. Clone and Navigate**
+
 
 - Millisecond-precision timestamps
 
