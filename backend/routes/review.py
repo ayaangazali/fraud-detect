@@ -782,6 +782,7 @@ async def get_checker_queue(
                 'flagged_by': flagged_by_name or 'System',
                 'flagged_at': item.flagged_at.isoformat() if item.flagged_at else None,
                 'flag_reason': item.flag_reason,
+                'flag_reason_category': item.flag_reason_category,  # So checker knows if escalated, suspicious, etc.
                 # Screener notes - this is what the checker needs to see
                 'screener_notes': item.flag_reason,
                 'notes': item.flag_reason,

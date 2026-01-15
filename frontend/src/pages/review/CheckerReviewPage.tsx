@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +17,6 @@ import {
   ChevronRight,
   Shield,
   AlertCircle,
-  Info,
   ArrowLeftRight,
   Target,
   Hash,
@@ -28,6 +28,8 @@ import {
   MapPin,
   Briefcase,
   CreditCard,
+  Flag,
+  UserCheck,
 } from 'lucide-react';
 import apiClient from '@/services/apiClient';
 
@@ -118,7 +120,9 @@ interface ReviewItem {
   flagged_by?: string;
   flagged_at: string;
   flag_reason?: string;
+  flag_reason_category?: string;
   screener_notes?: string;
+  screener_decision?: string;  // flagged, escalated, etc.
   notes?: string;
   // Full comparison data from backend
   kamco_data?: KamcoData;
@@ -212,28 +216,50 @@ const CheckerReviewPage: React.FC = () => {
     return item.screener_notes || item.flag_reason || item.notes || 'No screener notes provided';
   };
 
+  const getScreenerDecision = (item: ReviewItem): { decision: string; color: string; icon: React.ReactNode } => {
+    const category = item.flag_reason_category || item.screener_decision || 'flagged';
+    switch (category.toLowerCase()) {
+      case 'escalated':
+      case 'high_risk':
+        return { decision: 'ESCALATED - High Risk', color: 'bg-red-600', icon: <AlertTriangle className="w-4 h-4" /> };
+      case 'suspicious_activity':
+        return { decision: 'FLAGGED - Suspicious Activity', color: 'bg-orange-600', icon: <Flag className="w-4 h-4" /> };
+      case 'match_confirmed':
+        return { decision: 'FLAGGED - Match Confirmed', color: 'bg-yellow-600', icon: <Flag className="w-4 h-4" /> };
+      case 'regulatory':
+        return { decision: 'FLAGGED - Regulatory Concern', color: 'bg-purple-600', icon: <Shield className="w-4 h-4" /> };
+      default:
+        return { decision: 'FLAGGED for Review', color: 'bg-blue-600', icon: <Flag className="w-4 h-4" /> };
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
-        <span className="ml-2">Loading review queue...</span>
-      </div>
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+          <span className="ml-2">Loading review queue...</span>
+        </div>
+      </MainLayout>
     );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive" className="m-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-        <Button variant="outline" size="sm" onClick={fetchQueue} className="ml-4">Retry</Button>
-      </Alert>
+      <MainLayout>
+        <Alert variant="destructive" className="m-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+          <Button variant="outline" size="sm" onClick={fetchQueue} className="ml-4">Retry</Button>
+        </Alert>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex items-center justify-between mb-6">
+    <MainLayout>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Checker Review Queue</h1>
           <p className="text-muted-foreground">Review flagged items and make approval decisions</p>
@@ -264,7 +290,9 @@ const CheckerReviewPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {items.map((item) => (
+                {items.map((item) => {
+                  const decision = getScreenerDecision(item);
+                  return (
                   <div
                     key={item.id}
                     onClick={() => { setSelectedItem(item); setReviewNotes(''); }}
@@ -277,16 +305,24 @@ const CheckerReviewPage: React.FC = () => {
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <Badge className={getSeverityColor(item.severity)}>{item.severity}</Badge>
                       <Badge variant="outline" className={getScoreColor(item.match_score)}>{item.match_score?.toFixed(1)}%</Badge>
+                      <Badge className={`${decision.color} text-white text-xs`}>{decision.icon}</Badge>
                     </div>
-                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {formatDate(item.flagged_at)}
+                    <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {item.flagged_by || 'Screener'}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDate(item.flagged_at)}
+                      </span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
           </div>
@@ -314,14 +350,48 @@ const CheckerReviewPage: React.FC = () => {
                   </CardHeader>
                 </Card>
 
-                {/* Screener Notes */}
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <div className="ml-2">
-                    <p className="font-medium">Screener Notes</p>
-                    <p className="text-sm text-muted-foreground mt-1">{getScreenerNotes(selectedItem)}</p>
-                  </div>
-                </Alert>
+                {/* Screener Decision Card - PROMINENT */}
+                <Card className="border-2 border-orange-200 bg-orange-50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <UserCheck className="w-5 h-5 text-orange-600" />
+                        Screener Decision
+                      </CardTitle>
+                      {(() => {
+                        const decision = getScreenerDecision(selectedItem);
+                        return (
+                          <Badge className={`${decision.color} text-white flex items-center gap-1`}>
+                            {decision.icon}
+                            {decision.decision}
+                          </Badge>
+                        );
+                      })()}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Flagged By</p>
+                        <p className="font-medium flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          {selectedItem.flagged_by || 'Unknown Screener'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Flagged At</p>
+                        <p className="font-medium flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          {formatDate(selectedItem.flagged_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 p-3 bg-white rounded-lg border">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Screener Notes / Reason for Flagging:</p>
+                      <p className="text-sm text-gray-600">{getScreenerNotes(selectedItem)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Tab Navigation */}
                 <div className="flex gap-2 border-b pb-2">
@@ -502,6 +572,7 @@ const CheckerReviewPage: React.FC = () => {
         </div>
       )}
     </div>
+    </MainLayout>
   );
 };
 
